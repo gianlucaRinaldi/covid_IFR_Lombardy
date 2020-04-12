@@ -11,38 +11,31 @@
 # sigma: standard deviation of dead per year in a normal year
 
 ###########################################
-# Estimate mu and sigma from previous years
-totDeathsBefore <- allDeathsByYear[variable != "totDeaths20",]
+yearlyDeaths <- dcast(allDeathsByYear, ageRange ~ variable)
+yearlyDeaths <- rbind(yearlyDeaths, as.list(c("0,20", rep(0,6))))
+
 # Demographic Data
 relevantTownsDemData <- unique(relevantTownsDemData[, c("ageRange", "populationMale", "populationFemale")])
 totPopBefore <- relevantTownsDemData[! is.na(ageRange), sum(populationFemale) + sum(populationMale), by = ageRange]
-
-deathRates <- merge(totPopBefore, totDeathsBefore[, mean(value), by = ageRange], by = "ageRange", all.x = T)
-
-names(deathRates) <- c("ageRange", "population", "deathsMean")
-deathRates[ageRange == "0-20", deathsMean := 0]
-deathRates[deathsMean < 1, deathsMean := 1]
+names(totPopBefore)[2] <- "population"
 
 # Likelihood is going to be binomial for each age range, with parameters given by
-
-mu <- totDeathsBefore[, mean(value), by = ageRange]
-sigma <- sd(totDeathsBefore$V1)
-
-
-# thefore we have that 
-dataDeaths2020 <- allDeathsByYear[variable == "totDeaths20", ]
-dataDeaths2020 <- dataDeaths2020[, c("ageRange", "value")]
-names(dataDeaths2020)[2] <- "deaths2020"
-dataDeaths2020 <- rbind(dataDeaths2020, list("0-20", 0))
-
-dataLikelihood <- merge(deathRates, dataDeaths2020, by = "ageRange")
+dataLikelihood <- merge(totPopBefore, yearlyDeaths, by = "ageRange")
 
 # we assume for 2020
-# deaths = mu + theta_i*pop*theta_d + epsilon_2020 where epsilon 2020 is normal with mean zero and std 
+# deaths coming from binomial with probability thetad/pop for years before 2020 and  (thetad + theta_i*theta_d)/pop for 2020
 
 model = function(){
   #priors
   #theta_i ~ dunif(0.2,.8)
+  thetadCovid[1] ~ dunif(0.0,.2)
+  thetadCovid[2] ~ dunif(0.0,.2)
+  thetadCovid[3] ~ dunif(0.0,.2)
+  thetadCovid[4] ~ dunif(0.0,.2)
+  thetadCovid[5] ~ dunif(0.0,.2)
+  thetadCovid[6] ~ dunif(0.0,.2)
+  thetadCovid[7] ~ dunif(0.0,.2)
+  
   thetad[1] ~ dunif(0.0,.2)
   thetad[2] ~ dunif(0.0,.2)
   thetad[3] ~ dunif(0.0,.2)
@@ -50,12 +43,18 @@ model = function(){
   thetad[5] ~ dunif(0.0,.2)
   thetad[6] ~ dunif(0.0,.2)
   thetad[7] ~ dunif(0.0,.2)
+
   theta_i ~ dbeta(40,20)
   
   #likelihood over the 7 age groups
   for (i in 1:7){
-    prob[i] <- deathsMean[i]/population[i]
-    deaths2020[i] ~ dbin(prob[i] + thetad[i]*theta_i, population[i])
+    
+    totDeaths15[i] ~ dbin(thetad[i], population[i])
+    totDeaths16[i] ~ dbin(thetad[i], population[i])
+    totDeaths17[i] ~ dbin(thetad[i], population[i])
+    totDeaths18[i] ~ dbin(thetad[i], population[i])
+    totDeaths19[i] ~ dbin(thetad[i], population[i])
+    totDeaths20[i] ~ dbin(thetad[i] + thetadCovid[i]*theta_i, population[i])
     }
 }
 
@@ -90,10 +89,9 @@ post = coda.samples(jmod, params, n.iter = ni, thin = nt)
 # diagnostic evaluation of posterior samples
 MCMCtrace(post)
 
-MCMCtrace(post, params = c('thetad','theta_i'), 
+MCMCtrace(post,
           type = 'density',
-          ind = TRUE, 
-          pdf = FALSE)
+          ind = TRUE)
 
 
 # objectively assess convergence with gelmans diagnostic
