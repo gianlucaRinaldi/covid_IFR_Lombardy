@@ -11,112 +11,23 @@
 # sigma: standard deviation of dead per year in a normal year
 
 ###########################################
-yearlyDeaths <- dcast(allDeathsByYear, ageRange ~ variable)
-yearlyDeaths <- rbind(yearlyDeaths, as.list(c("0-20", rep(0,6))))
 
+# Begin by loading and cleaning deaths data
+source(file = "code/lowerBoundCFRLodi.R")
+
+
+####################################
+# Model by town
+####################################
 # Demographic Data
-demsData <- fread(input = "Lodi_2015_2019.csv")
+demsData <- fread(input = "data/Lodi_2015_2019.csv")
+demsData <- demsData[Denominazione %in% unique(relevantTownsDeathsData$NOME_COMUNE), ]
 
-relevantTownsDemDataTemp <- unique(relevantTownsDemData[, c("ageRange", "populationMale", "populationFemale")])
-totPopBefore <- relevantTownsDemDataTemp[! is.na(ageRange), sum(populationFemale) + sum(populationMale), by = ageRange]
-names(totPopBefore)[2] <- "population"
-
-# Likelihood is going to be binomial for each age range, with parameters given by
-dataLikelihood <- merge(totPopBefore, yearlyDeaths, by = "ageRange")
-
-# we assume for 2020
-# deaths coming from binomial with probability thetad/pop for years before 2020 and  (thetad + theta_i*theta_d)/pop for 2020
+dataLikelihoodTown <- merge(demsData, allDeathsByYearTown, by.x = c("Denominazione", "ageRange"), by.y = c("NOME_COMUNE", "ageRange"), all.x = T)
+dataLikelihoodTown[is.na(dataLikelihoodTown),] <- 0
 
 model = function(){
   #priors
-  #theta_i ~ dunif(0.2,.8)
-  thetadCovid[1] ~ dunif(0.0,.2)
-  thetadCovid[2] ~ dunif(0.0,.2)
-  thetadCovid[3] ~ dunif(0.0,.2)
-  thetadCovid[4] ~ dunif(0.0,.2)
-  thetadCovid[5] ~ dunif(0.0,.2)
-  thetadCovid[6] ~ dunif(0.0,.2)
-  thetadCovid[7] ~ dunif(0.0,.2)
-  
-  thetad[1] ~ dunif(0.0,.2)
-  thetad[2] ~ dunif(0.0,.2)
-  thetad[3] ~ dunif(0.0,.2)
-  thetad[4] ~ dunif(0.0,.2)
-  thetad[5] ~ dunif(0.0,.2)
-  thetad[6] ~ dunif(0.0,.2)
-  thetad[7] ~ dunif(0.0,.2)
-
-  theta_i ~ dbeta(10,5)
-  
-  #likelihood over the 7 age groups
-  for (i in 1:7){
-    
-    totDeaths15[i] ~ dbin(thetad[i], population[i])
-    totDeaths16[i] ~ dbin(thetad[i], population[i])
-    totDeaths17[i] ~ dbin(thetad[i], population[i])
-    totDeaths18[i] ~ dbin(thetad[i], population[i])
-    totDeaths19[i] ~ dbin(thetad[i], population[i])
-    totDeaths20[i] ~ dbin(thetad[i] + thetadCovid[i]*theta_i, population[i])
-    }
-}
-
-model.file="model.txt"
-write.model(model,model.file)
-
-# no initial values
-inits<-NULL
-
-# what parameters we want to track
-params = c("thetadCovid","thetad","theta_i")
-
-## hyperparameters
-# number of iterations
-ni = 10000
-# burn in interval
-nb = 100
-# thinning interval
-nt = 1
-# number of chains
-nc = 10
-
-# compile model
-jmod = jags.model(file = model.file, data = dataLikelihood, n.chains = nc, inits = inits, n.adapt = 1000)
-
-# iterate through jmod for the extent of the burn-in
-update(jmod, n.iter=nb, by=1)
-
-# draw samples from the posterior for params, given MCMC hyperparameters
-post = coda.samples(jmod, params, n.iter = ni, thin = nt)
-
-# diagnostic evaluation of posterior samples
-MCMCtrace(post)
-
-MCMCtrace(post,
-          type = 'density',
-          ind = TRUE)
-
-
-# objectively assess convergence with gelmans diagnostic
-gelman.diag(post)
-
-# get summary of posterior samples for two parameters
-MCMCsummary(post, params = c('thetad','theta_i'), digits=2)
-
-# Model by town
-relevantTownsDemDataTemp <- unique(relevantTownsDemData[, c("Denominazione", "ageRange", "populationMale", "populationFemale")])
-totPopBeforeTown <- relevantTownsDemDataTemp[! is.na(ageRange), sum(populationFemale) + sum(populationMale), by = c("Denominazione", "ageRange")]
-names(totPopBeforeTown)[3] <- "totPop"
-
-demsData <- demsData[Denominazione %in% unique(yearlyDeathsTemp$NOME_COMUNE), ]
-
-yearlyDeathsTemp <- unique(relevantTownsDeathsDataTemp[covidAffectedPeriod == T, c("NOME_COMUNE", "ageRange", "totDeaths15",  "totDeaths16", "totDeaths17", "totDeaths18", "totDeaths19", "totDeaths20")])
-
-dataLikelihoodTown <- merge(demsData, yearlyDeathsTemp, by.x = c("Denominazione", "ageRange"), by.y = c("NOME_COMUNE", "ageRange"), all.x = T)
-dataLikelihoodTown[is.na(dataLikelihoodTown),] <- 0
-
-modelTown = function(){
-  #priors
-  #theta_i ~ dunif(0.2,.8)
   thetadCovid[1] ~ dunif(0.0,.3)
   thetadCovid[2] ~ dunif(0.0,.3)
   thetadCovid[3] ~ dunif(0.0,.3)
@@ -145,30 +56,32 @@ modelTown = function(){
   #likelihood over the 7 age groups (j) and 7 towns (i)
   for (i in 1:7){
     for (j in 1:7){
-      totDeaths15[(i-1)*7 + j] ~ dbin(thetad[j], tot2015[j])
-      totDeaths16[(i-1)*7 + j] ~ dbin(thetad[j], tot2016[j])
-      totDeaths17[(i-1)*7 + j] ~ dbin(thetad[j], tot2017[j])
-      totDeaths18[(i-1)*7 + j] ~ dbin(thetad[j], tot2018[j])
-      totDeaths19[(i-1)*7 + j] ~ dbin(thetad[j], tot2019[j])
-      totDeaths20[(i-1)*7 + j] ~ dbin(thetad[j] + thetadCovid[j]*theta_i[i], tot2019[j])
+      totDeathsTown15[(i-1)*7 + j] ~ dbin(thetad[j], tot2015[(i-1)*7 + j])
+      totDeathsTown16[(i-1)*7 + j] ~ dbin(thetad[j], tot2016[(i-1)*7 + j])
+      totDeathsTown17[(i-1)*7 + j] ~ dbin(thetad[j], tot2017[(i-1)*7 + j])
+      totDeathsTown18[(i-1)*7 + j] ~ dbin(thetad[j], tot2018[(i-1)*7 + j])
+      totDeathsTown19[(i-1)*7 + j] ~ dbin(thetad[j], tot2019[(i-1)*7 + j])
+      totDeathsTown20[(i-1)*7 + j] ~ dbin(thetad[j] + thetadCovid[j]*theta_i[i], tot2019[(i-1)*7 + j])
     }
   }
 }
 
-modelTown.file="model.txt"
-write.model(modelTown, modelTown.file)
+model.file="model.txt"
+write.model(model, model.file)
 
 # no initial values
 inits<-NULL
 
 # what parameters we want to track
-params = c("thetadCovid","thetad","theta_i")
+params = c("thetadCovid",
+           "thetad",
+           "theta_i")
 
 ## hyperparameters
 # number of iterations
 ni = 10000
 # burn in interval
-nb = 100
+nb = 1000
 # thinning interval
 nt = 1
 # number of chains
@@ -181,18 +94,103 @@ jmod = jags.model(file = model.file, data = dataLikelihoodTown, n.chains = nc, i
 update(jmod, n.iter=nb, by=1)
 
 # draw samples from the posterior for params, given MCMC hyperparameters
-post = coda.samples(jmod, params, n.iter = ni, thin = nt)
+postTown = coda.samples(jmod, params, n.iter = ni, thin = nt)
 
 # diagnostic evaluation of posterior samples
-MCMCtrace(post)
+MCMCtrace(postTown)
 
-MCMCtrace(post,
+MCMCtrace(postTown,
           type = 'density',
           ind = TRUE)
 
 
 # objectively assess convergence with gelmans diagnostic
-gelman.diag(post)
+gelman.diag(postTown)
 
 # get summary of posterior samples for two parameters
-MCMCsummary(post, params = c('thetad','theta_i', "thetadCovid"), digits=2)
+MCMCsummary(postTown, params = c('thetad','theta_i', "thetadCovid"), digits=2)
+
+IFRbyAge <- MCMCsummary(postTown, params = c("thetadCovid"), digits=2, probs = c(0.025, 0.25,.5,.75,.975))
+ageRanges <- unique(dataLikelihoodTown$ageRange)
+IFRbyAge$`Age Range` <- ageRanges
+names(IFRbyAge)[5] <- "Infection Fatality Rate"
+IFRbyAge <- as.data.table(IFRbyAge)
+
+#######################################################################################################################################################
+# Run Model for each potential proportion of population infected, in order to make plot with changing population infected, fixing proportion infected
+#######################################################################################################################################################
+
+## hyperparameters
+# number of iterations
+ni = 1000
+# burn in interval
+nb = 100
+# thinning interval
+nt = 1
+# number of chains
+nc = 3
+
+params <- c("thetadCovid", "thetad")
+
+infectedProportions <- seq(0.01, .8, 0.01)
+
+graphDataAll <- data.table()
+
+for(propInfected in infectedProportions){
+  
+  dataLikelihoodTown[, prop := propInfected]
+  print(unique(dataLikelihoodTown$prop))
+  model = function(){
+    #priors
+    thetadCovid[1] ~ dunif(0.0,.3)
+    thetadCovid[2] ~ dunif(0.0,.3)
+    thetadCovid[3] ~ dunif(0.0,.3)
+    thetadCovid[4] ~ dunif(0.0,.3)
+    thetadCovid[5] ~ dunif(0.0,.3)
+    thetadCovid[6] ~ dunif(0.0,.3)
+    thetadCovid[7] ~ dunif(0.0,.3)
+    
+    thetad[1] ~ dunif(0.0,.1)
+    thetad[2] ~ dunif(0.0,.1)
+    thetad[3] ~ dunif(0.0,.1)
+    thetad[4] ~ dunif(0.0,.1)
+    thetad[5] ~ dunif(0.0,.1)
+    thetad[6] ~ dunif(0.0,.1)
+    thetad[7] ~ dunif(0.0,.1)
+    
+    #likelihood over the 7 age groups (j) and 7 towns (i)
+    for (i in 1:7){
+      for (j in 1:7){
+        totDeathsTown15[(i-1)*7 + j] ~ dbin(thetad[j], tot2015[(i-1)*7 + j])
+        totDeathsTown16[(i-1)*7 + j] ~ dbin(thetad[j], tot2016[(i-1)*7 + j])
+        totDeathsTown17[(i-1)*7 + j] ~ dbin(thetad[j], tot2017[(i-1)*7 + j])
+        totDeathsTown18[(i-1)*7 + j] ~ dbin(thetad[j], tot2018[(i-1)*7 + j])
+        totDeathsTown19[(i-1)*7 + j] ~ dbin(thetad[j], tot2019[(i-1)*7 + j])
+        totDeathsTown20[(i-1)*7 + j] ~ dbin(thetad[j] + (thetadCovid[j]*prop[j]), tot2019[(i-1)*7 + j])
+      }
+    }
+  }
+  
+  model.file="model.txt"
+  write.model(model, model.file)
+  
+  # no initial values
+  inits<-NULL
+
+  # compile model
+  jmod = jags.model(file = model.file, data = dataLikelihoodTown, n.chains = nc, inits = inits, n.adapt = 1000)
+  
+  # iterate through jmod for the extent of the burn-in
+  update(jmod, n.iter=nb, by=1)
+  
+  # draw samples from the posterior for params, given MCMC hyperparameters
+  post = coda.samples(jmod, params, n.iter = ni, thin = nt)
+  
+  graphData <- as.data.table(MCMCsummary(post)[8:14, 3:5])
+  graphData[, ageRange := ageRanges]
+  graphData[, prop := propInfected]
+  
+  graphDataAll <- rbind(graphDataAll, graphData)
+  }
+
+
