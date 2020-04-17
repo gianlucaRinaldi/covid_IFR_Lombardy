@@ -6,7 +6,7 @@
 # Load demographic data
 lodiDem <- fread("data/Lodi.csv")
 # Load deaths by date
-deathsData <- fread("data/comune_giornoUpTo28March.csv") # new data
+deathsData <- fread("data/comune_giorno.csv") 
 
 relevantTowns <- c("Codogno", "Castiglione d'Adda", "Casalpusterlengo", "Fombio", "Maleo", "Somaglia", "Bertonico", "Terranova dei Passerini", "Castelgerundo", "San Fiorano")
 
@@ -37,9 +37,9 @@ relevantTownsDeathsData[, meanDailyDeathsPreviousYearsFemale := (sum(FEMMINE_15)
 relevantTownsDeathsData[, excess2020DeathsMale := unique(dailyDeaths2020Male - meanDailyDeathsPreviousYearsMale), by = c("NOME_COMUNE", "ageRange", "GE")]
 relevantTownsDeathsData[, excess2020DeathsFemale := unique(dailyDeaths2020Female - meanDailyDeathsPreviousYearsFemale), by = c("NOME_COMUNE", "ageRange", "GE")]
 
-# Remove dates after march 21st because no 2020 data
-relevantTownsDeathsData <- relevantTownsDeathsData[GE <= 328,]
-relevantTownsDeathsData[, covidAffectedPeriod := (GE %in% 221:328)]
+# Remove dates after april 4 because no 2020 data
+relevantTownsDeathsData <- relevantTownsDeathsData[GE <= 404,]
+relevantTownsDeathsData[, covidAffectedPeriod := (GE %in% 221:404)]
 
 # Look at total deaths by age cathegories to have an idea of variance
 relevantTownsDeathsData[covidAffectedPeriod == T, totDeaths15 := sum(MASCHI_15 + FEMMINE_15), by = "ageRange"]
@@ -80,7 +80,7 @@ plotDeaths[, date := as.Date(paste0(month, "/", day, "/2020"), format = "%m/%d/%
 relevantTownsDeathsData <- unique(relevantTownsDeathsData[,c("NOME_COMUNE", "ageRange", "GE", "covidAffectedPeriod", "excess2020DeathsMale", "excess2020DeathsFemale")])
 
 # Look at demograpgics
-relevantTownsDemData[, age2020 := as.numeric(`Età`) + 2] # data are from 2018
+relevantTownsDemData[, age2020 := as.numeric(`Età`) + 1] # data are from 2018
 relevantTownsDemData[, ageRange := cut(age2020, c(0, 20, 40, 50, 60, 70, 80,  200), labels = c("0-20", "21-40", "41-50", "51-60", "61-70","71-80", "81+"), include.lowest = T)]
 relevantTownsDemData[, populationMale := sum(`Totale Maschi`), by = c("Denominazione", "ageRange")]
 relevantTownsDemData[, populationFemale := sum(`Totale Femmine`), by = c("Denominazione", "ageRange")]

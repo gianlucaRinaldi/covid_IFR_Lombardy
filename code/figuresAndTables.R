@@ -18,7 +18,7 @@ ggplot() +
   xlab("") + 
   ylab("") + 
   geom_hline(yintercept = 0) +  
-  theme(legend.position = c(0.3, 0.8)) +
+  theme(legend.position = c(0.2, 0.8)) +
   theme(legend.title = element_blank()) +
   geom_vline(xintercept = as.Date("2020-02-20"), color = "red") +
   theme(panel.grid.minor = element_blank())
@@ -91,27 +91,30 @@ ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figure
 
 overallIFR <- merge(ageRangeShare, IFRPlot[, as.list(quantile(value, c(.025,.5,.975))), by = variable], by.x = "ageRange", by.y = "variable")
 overallIFR <- overallIFR[, c(sum(ageRangeShare*`2.5%`), sum(ageRangeShare*`50%`) , sum(ageRangeShare*`97.5%`))]
-
-under50IFR <- merge(ageRangeShare, IFRPlot[, as.list(quantile(value, c(.025,.5,.975))), by = variable], by.x = "ageRange", by.y = "variable")
-under50IFR <- under50IFR[ageRange %in% c("0-20", "21-40", "41-50"), c(sum(ageRangeShare*`2.5%`), sum(ageRangeShare*`50%`) , sum(ageRangeShare*`97.5%`))/sum(ageRangeShare)]
-
-at60IFR <- merge(ageRangeShare, IFRPlot[, as.list(quantile(value, c(.025,.5,.975))), by = variable], by.x = "ageRange", by.y = "variable")
-at60IFR <- at60IFR[ageRange %in% c("51-60"), c(sum(ageRangeShare*`2.5%`), sum(ageRangeShare*`50%`) , sum(ageRangeShare*`97.5%`))/sum(ageRangeShare)]
+sprintf("%.2f", overallIFR)
 
 under60IFR <- merge(ageRangeShare, IFRPlot[, as.list(quantile(value, c(.025,.5,.975))), by = variable], by.x = "ageRange", by.y = "variable")
 under60IFR <- under60IFR[ageRange %in% c("0-20", "21-40", "41-50", "51-60"), c(sum(ageRangeShare*`2.5%`), sum(ageRangeShare*`50%`) , sum(ageRangeShare*`97.5%`))/sum(ageRangeShare)]
+sprintf("%.2f", under60IFR)
 
 over60IFR <- merge(ageRangeShare, IFRPlot[, as.list(quantile(value, c(.025,.5,.975))), by = variable], by.x = "ageRange", by.y = "variable")
 over60IFR <- over60IFR[! ageRange %in% c("0-20", "21-40", "41-50", "51-60"), c(sum(ageRangeShare*`2.5%`), sum(ageRangeShare*`50%`) , sum(ageRangeShare*`97.5%`))/sum(ageRangeShare)]
+sprintf("%.2f", over60IFR)
 
 over80IFR <- merge(ageRangeShare, IFRPlot[, as.list(quantile(value, c(.025,.5,.975))), by = variable], by.x = "ageRange", by.y = "variable")
 over80IFR <- over80IFR[ageRange %in% c("81+"), c(sum(ageRangeShare*`2.5%`), sum(ageRangeShare*`50%`) , sum(ageRangeShare*`97.5%`))/sum(ageRangeShare)]
 
-graphDataAll[ageRange == "Overall" & prop == 1, ]
+# Overall IFR assuming everyone got it
+sprintf("%.2f", graphDataAll[ageRange == "Overall" & prop == 100, ])
 
 #########################
 ## Make Tables
 #########################
+
+##################################
+# Table of model estimates
+##################################
+MCMCsummary(postTown, params = c('thetad','theta_i', "thetadCovid"), digits=4)
 
 ##################################
 # Table of demographics and deaths
@@ -121,13 +124,8 @@ tableDemsDeaths <-  tableDemsDeaths[,lapply(.SD, sum, na.rm=TRUE), by= ageRange]
 overallDemsDeaths <- tableDemsDeaths[, c(-1)]
 overallDemsDeaths <- overallDemsDeaths[,lapply(.SD, sum, na.rm=TRUE), ]
 overallDemsDeaths[, ageRange := "Overall"]
-
 tableDemsDeaths <- rbind(tableDemsDeaths, overallDemsDeaths)
 
 stargazer(tableDemsDeaths, summary = FALSE, rownames = FALSE)
 
-
-
-
-dataLikelihoodTown[, unique(Denominazione)]
 

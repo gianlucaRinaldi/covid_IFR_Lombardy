@@ -191,5 +191,5 @@ for(propInfected in infectedProportions){
   graphData[, prop := propInfected]
   graphDataAll <- rbind(graphDataAll, graphData)
   }
-
+  
 
