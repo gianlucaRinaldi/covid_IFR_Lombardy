@@ -19,6 +19,7 @@ ggplot() +
   ylab("") + 
   geom_hline(yintercept = 0) +  
   theme(legend.position = c(0.2, 0.8)) +
+  theme(legend.margin = 0) +
   theme(legend.title = element_blank()) +
   geom_vline(xintercept = as.Date("2020-02-20"), color = "red") +
   theme(panel.grid.minor = element_blank())
@@ -80,10 +81,93 @@ ggplot(graphDataAll[prop > 10, ], aes(x = prop)) +
   theme(panel.grid.minor = element_blank()) + 
   geom_ribbon(aes(ymin=`2.5%`,ymax=`97.5%`, fill = ageRange), alpha= 0.35)  +
   scale_fill_manual(values = palCustom, name = "Age Range") + 
-  scale_color_manual(values = palCustom, name = "Age Range")
+  scale_color_manual(values = palCustom, name = "Age Range") 
   
 ggsave(filename = "output/IFRbyProp.pdf")
 ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figures/IFRbyProp.pdf")
+
+###############################################################
+# Appendix plot of trace and posterior densities
+###############################################################
+
+# diagnostic evaluation of posterior samples
+priorDelta <- seq(0,0.1, length.out = 5000)
+MCMCtrace(postTown,
+          iter = 500,
+          params = c("delta"),
+          priors = priorDelta,
+          main_den = c(TeX("Density $\\delta_{0-20}$"),
+                       TeX("Density $\\delta_{21-40}$"),
+                       TeX("Density $\\delta_{41-50}$"),
+                       TeX("Density $\\delta_{51-60}$"),
+                       TeX("Density $\\delta_{61-70}$"),
+                       TeX("Density $\\delta_{71-80}$"),
+                       TeX("Density $\\delta_{81+}$")),
+          main_tr =  c(TeX("Trace $\\delta_{0-20}$"),
+                       TeX("Trace $\\delta_{21-40}$"),
+                       TeX("Trace $\\delta_{41-50}$"),
+                       TeX("Trace $\\delta_{51-60}$"),
+                       TeX("Trace $\\delta_{61-70}$"),
+                       TeX("Trace $\\delta_{71-80}$"),
+                       TeX("Trace $\\delta_{81+}$")),
+          filename = "output/MCMCdelta.pdf"
+          )
+
+priorDeltaCovid <- seq(0,0.3, length.out = 5000)
+MCMCtrace(postTown,
+          iter = 500,
+          params = c("deltaCovid"),
+          priors = priorDeltaCovid,
+          main_den = c(TeX("Density $\\delta^{Covid}_{0-20}$"),
+                       TeX("Density $\\delta^{Covid}_{21-40}$"),
+                       TeX("Density $\\delta^{Covid}_{41-50}$"),
+                       TeX("Density $\\delta^{Covid}_{51-60}$"),
+                       TeX("Density $\\delta^{Covid}_{61-70}$"),
+                       TeX("Density $\\delta^{Covid}_{71-80}$"),
+                       TeX("Density $\\theta^{Covid}_{81+}$")),
+          main_tr =  c(TeX("Trace $\\delta^{Covid}_{0-20}$"),
+                       TeX("Trace $\\delta^{Covid}_{21-40}$"),
+                       TeX("Trace $\\delta^{Covid}_{41-50}$"),
+                       TeX("Trace $\\delta^{Covid}_{51-60}$"),
+                       TeX("Trace $\\delta^{Covid}_{61-70}$"),
+                       TeX("Trace $\\delta^{Covid}_{71-80}$"),
+                       TeX("Trace $\\theta^{Covid}_{81+}$")),
+          filename = "output/MCMCdeltaCovid.pdf")
+
+priorTheta <- qbeta(seq(0,1, length.out = 5000), 3, 2, ncp = 0, lower.tail = TRUE, log.p = FALSE)
+
+MCMCtrace(postTown,
+          iter = 500,
+          priors = priorTheta,
+          params = c("theta_i"),
+          main_den = c(TeX("Density $\\theta_{Casalpusterlengo}$"),
+                       TeX("Density $\\delta_{Castiglione d'Adda}$"),
+                       TeX("Density $\\delta_{Codogno}$"),
+                       TeX("Density $\\delta_{Fombio}$"),
+                       TeX("Density $\\delta_{Maleo}$"),
+                       TeX("Density $\\delta_{San Fiorano}$"),
+                       TeX("Density $\\delta_{Somaglia}$")),
+          main_tr =  c(TeX("Trace $\\theta_{Casalpusterlengo}$"),
+                       TeX("Trace $\\delta_{Castiglione d'Adda}$"),
+                       TeX("Trace $\\delta_{Codogno}$"),
+                       TeX("Trace $\\delta_{Fombio}$"),
+                       TeX("Trace $\\delta_{Maleo}$"),
+                       TeX("Trace $\\delta_{San Fiorano}$"),
+                       TeX("Trace $\\delta_{Somaglia}$")),
+          filename = "output/MCMCtheta.pdf")
+
+system2(command = "pdfcrop", 
+        args    = c("output/MCMCdelta.pdf", 
+                    "output/MCMCdelta.pdf")) 
+
+system2(command = "pdfcrop", 
+        args    = c("output/MCMCdeltaCovid.pdf", 
+                    "output/MCMCdeltaCovid.pdf")) 
+
+system2(command = "pdfcrop", 
+        args    = c("output/MCMCtheta.pdf", 
+                    "output/MCMCtheta.pdf")) 
+
 
 #############################################################
 # Overall IFR from full model for various age groups
@@ -114,7 +198,10 @@ sprintf("%.2f", graphDataAll[ageRange == "Overall" & prop == 100, ])
 ##################################
 # Table of model estimates
 ##################################
-MCMCsummary(postTown, params = c('thetad','theta_i', "thetadCovid"), digits=4)
+sprintf("%.4f", overallIFR)
+sprintf("%.4f", under60IFR)
+sprintf("%.4f", over60IFR)
+MCMCsummary(postTown, params = c('delta','theta_i', "deltaCovid"), digits=4)
 
 ##################################
 # Table of demographics and deaths

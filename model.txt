@@ -1,33 +1,40 @@
 model
 {
-    thetadCovid[1] ~ dunif(0.00000E+00, 0.3)
-    thetadCovid[2] ~ dunif(0.00000E+00, 0.3)
-    thetadCovid[3] ~ dunif(0.00000E+00, 0.3)
-    thetadCovid[4] ~ dunif(0.00000E+00, 0.3)
-    thetadCovid[5] ~ dunif(0.00000E+00, 0.3)
-    thetadCovid[6] ~ dunif(0.00000E+00, 0.3)
-    thetadCovid[7] ~ dunif(0.00000E+00, 0.3)
-    thetad[1] ~ dunif(0.00000E+00, 0.1)
-    thetad[2] ~ dunif(0.00000E+00, 0.1)
-    thetad[3] ~ dunif(0.00000E+00, 0.1)
-    thetad[4] ~ dunif(0.00000E+00, 0.1)
-    thetad[5] ~ dunif(0.00000E+00, 0.1)
-    thetad[6] ~ dunif(0.00000E+00, 0.1)
-    thetad[7] ~ dunif(0.00000E+00, 0.1)
+    deltaCovid[1] ~ dunif(0.00000E+00, 0.3)
+    deltaCovid[2] ~ dunif(0.00000E+00, 0.3)
+    deltaCovid[3] ~ dunif(0.00000E+00, 0.3)
+    deltaCovid[4] ~ dunif(0.00000E+00, 0.3)
+    deltaCovid[5] ~ dunif(0.00000E+00, 0.3)
+    deltaCovid[6] ~ dunif(0.00000E+00, 0.3)
+    deltaCovid[7] ~ dunif(0.00000E+00, 0.3)
+    delta[1] ~ dunif(0.00000E+00, 0.1)
+    delta[2] ~ dunif(0.00000E+00, 0.1)
+    delta[3] ~ dunif(0.00000E+00, 0.1)
+    delta[4] ~ dunif(0.00000E+00, 0.1)
+    delta[5] ~ dunif(0.00000E+00, 0.1)
+    delta[6] ~ dunif(0.00000E+00, 0.1)
+    delta[7] ~ dunif(0.00000E+00, 0.1)
+    theta_i[1] ~ dbeta(3, 2)
+    theta_i[2] ~ dbeta(3, 2)
+    theta_i[3] ~ dbeta(3, 2)
+    theta_i[4] ~ dbeta(3, 2)
+    theta_i[5] ~ dbeta(3, 2)
+    theta_i[6] ~ dbeta(3, 2)
+    theta_i[7] ~ dbeta(3, 2)
     for (i in 1:7) {
         for (j in 1:7) {
-            totDeathsTown15[(i - 1) * 7 + j] ~ dbin(thetad[j], 
+            totDeathsTown15[(i - 1) * 7 + j] ~ dbin(delta[j], 
                 tot2015[(i - 1) * 7 + j])
-            totDeathsTown16[(i - 1) * 7 + j] ~ dbin(thetad[j], 
+            totDeathsTown16[(i - 1) * 7 + j] ~ dbin(delta[j], 
                 tot2016[(i - 1) * 7 + j])
-            totDeathsTown17[(i - 1) * 7 + j] ~ dbin(thetad[j], 
+            totDeathsTown17[(i - 1) * 7 + j] ~ dbin(delta[j], 
                 tot2017[(i - 1) * 7 + j])
-            totDeathsTown18[(i - 1) * 7 + j] ~ dbin(thetad[j], 
+            totDeathsTown18[(i - 1) * 7 + j] ~ dbin(delta[j], 
                 tot2018[(i - 1) * 7 + j])
-            totDeathsTown19[(i - 1) * 7 + j] ~ dbin(thetad[j], 
+            totDeathsTown19[(i - 1) * 7 + j] ~ dbin(delta[j], 
                 tot2019[(i - 1) * 7 + j])
-            totDeathsTown20[(i - 1) * 7 + j] ~ dbin(thetad[j] + 
-                (thetadCovid[j] * prop[j]), tot2019[(i - 1) * 
+            totDeathsTown20[(i - 1) * 7 + j] ~ dbin(delta[j] + 
+                deltaCovid[j] * theta_i[i], tot2019[(i - 1) * 
                 7 + j])
         }
     }

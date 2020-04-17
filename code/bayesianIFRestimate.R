@@ -4,8 +4,8 @@
 
 # Parameters:
 
-# thetad: 7x1 vector of baseline fatality rate by age range
-# thetadCovid: 7x1 vector of IFR by age range
+# delta: 7x1 vector of baseline fatality rate by age range
+# deltaCovid: 7x1 vector of IFR by age range
 # theta_i: proportion infected
 
 # mu: mean of dead per year in a normal year
@@ -29,21 +29,21 @@ dataLikelihoodTown[is.na(dataLikelihoodTown),] <- 0
 
 model = function(){
   #priors
-  thetadCovid[1] ~ dunif(0.0,.3)
-  thetadCovid[2] ~ dunif(0.0,.3)
-  thetadCovid[3] ~ dunif(0.0,.3)
-  thetadCovid[4] ~ dunif(0.0,.3)
-  thetadCovid[5] ~ dunif(0.0,.3)
-  thetadCovid[6] ~ dunif(0.0,.3)
-  thetadCovid[7] ~ dunif(0.0,.3)
+  deltaCovid[1] ~ dunif(0.0,.3)
+  deltaCovid[2] ~ dunif(0.0,.3)
+  deltaCovid[3] ~ dunif(0.0,.3)
+  deltaCovid[4] ~ dunif(0.0,.3)
+  deltaCovid[5] ~ dunif(0.0,.3)
+  deltaCovid[6] ~ dunif(0.0,.3)
+  deltaCovid[7] ~ dunif(0.0,.3)
   
-  thetad[1] ~ dunif(0.0,.1)
-  thetad[2] ~ dunif(0.0,.1)
-  thetad[3] ~ dunif(0.0,.1)
-  thetad[4] ~ dunif(0.0,.1)
-  thetad[5] ~ dunif(0.0,.1)
-  thetad[6] ~ dunif(0.0,.1)
-  thetad[7] ~ dunif(0.0,.1)
+  delta[1] ~ dunif(0.0,.1)
+  delta[2] ~ dunif(0.0,.1)
+  delta[3] ~ dunif(0.0,.1)
+  delta[4] ~ dunif(0.0,.1)
+  delta[5] ~ dunif(0.0,.1)
+  delta[6] ~ dunif(0.0,.1)
+  delta[7] ~ dunif(0.0,.1)
   
   theta_i[1] ~ dbeta(3,2)
   theta_i[2] ~ dbeta(3,2)
@@ -56,12 +56,12 @@ model = function(){
   #likelihood over the 7 age groups (j) and 7 towns (i)
   for (i in 1:7){
     for (j in 1:7){
-      totDeathsTown15[(i-1)*7 + j] ~ dbin(thetad[j], tot2015[(i-1)*7 + j])
-      totDeathsTown16[(i-1)*7 + j] ~ dbin(thetad[j], tot2016[(i-1)*7 + j])
-      totDeathsTown17[(i-1)*7 + j] ~ dbin(thetad[j], tot2017[(i-1)*7 + j])
-      totDeathsTown18[(i-1)*7 + j] ~ dbin(thetad[j], tot2018[(i-1)*7 + j])
-      totDeathsTown19[(i-1)*7 + j] ~ dbin(thetad[j], tot2019[(i-1)*7 + j])
-      totDeathsTown20[(i-1)*7 + j] ~ dbin(thetad[j] + thetadCovid[j]*theta_i[i], tot2019[(i-1)*7 + j])
+      totDeathsTown15[(i-1)*7 + j] ~ dbin(delta[j], tot2015[(i-1)*7 + j])
+      totDeathsTown16[(i-1)*7 + j] ~ dbin(delta[j], tot2016[(i-1)*7 + j])
+      totDeathsTown17[(i-1)*7 + j] ~ dbin(delta[j], tot2017[(i-1)*7 + j])
+      totDeathsTown18[(i-1)*7 + j] ~ dbin(delta[j], tot2018[(i-1)*7 + j])
+      totDeathsTown19[(i-1)*7 + j] ~ dbin(delta[j], tot2019[(i-1)*7 + j])
+      totDeathsTown20[(i-1)*7 + j] ~ dbin(delta[j] + deltaCovid[j]*theta_i[i], tot2019[(i-1)*7 + j])
     }
   }
 }
@@ -73,8 +73,8 @@ write.model(model, model.file)
 inits<-NULL
 
 # what parameters we want to track
-params = c("thetadCovid",
-           "thetad",
+params = c("deltaCovid",
+           "delta",
            "theta_i")
 
 ## hyperparameters
@@ -96,21 +96,17 @@ update(jmod, n.iter=nb, by=1)
 # draw samples from the posterior for params, given MCMC hyperparameters
 postTown = coda.samples(jmod, params, n.iter = ni, thin = nt)
 
-# diagnostic evaluation of posterior samples
-MCMCtrace(postTown)
-
 MCMCtrace(postTown,
           type = 'density',
           ind = TRUE)
-
-
+MCMCtrace()
 # objectively assess convergence with gelmans diagnostic
 gelman.diag(postTown)
 
 # get summary of posterior samples for two parameters
-MCMCsummary(postTown, params = c('thetad','theta_i', "thetadCovid"), digits=4)
+MCMCsummary(postTown, params = c('delta','theta_i', "deltaCovid"), digits=4)
 
-IFRbyAge <- MCMCsummary(postTown, params = c("thetadCovid"), digits=2, probs = c(0.025, 0.25,.5,.75,.975))
+IFRbyAge <- MCMCsummary(postTown, params = c("deltaCovid"), digits=2, probs = c(0.025, 0.25,.5,.75,.975))
 ageRanges <- unique(dataLikelihoodTown$ageRange)
 IFRbyAge$`Age Range` <- ageRanges
 names(IFRbyAge)[5] <- "Infection Fatality Rate"
@@ -130,7 +126,7 @@ nt = 1
 # number of chains
 nc = 3
 
-params <- c("thetadCovid", "thetad")
+params <- c("deltaCovid", "delta")
 
 infectedProportions <- seq(0.01, 1, 0.01)
 
@@ -142,31 +138,31 @@ for(propInfected in infectedProportions){
   print(unique(dataLikelihoodTown$prop))
   model = function(){
     #priors
-    thetadCovid[1] ~ dunif(0.0,.3)
-    thetadCovid[2] ~ dunif(0.0,.3)
-    thetadCovid[3] ~ dunif(0.0,.3)
-    thetadCovid[4] ~ dunif(0.0,.3)
-    thetadCovid[5] ~ dunif(0.0,.3)
-    thetadCovid[6] ~ dunif(0.0,.3)
-    thetadCovid[7] ~ dunif(0.0,.3)
+    deltaCovid[1] ~ dunif(0.0,.3)
+    deltaCovid[2] ~ dunif(0.0,.3)
+    deltaCovid[3] ~ dunif(0.0,.3)
+    deltaCovid[4] ~ dunif(0.0,.3)
+    deltaCovid[5] ~ dunif(0.0,.3)
+    deltaCovid[6] ~ dunif(0.0,.3)
+    deltaCovid[7] ~ dunif(0.0,.3)
     
-    thetad[1] ~ dunif(0.0,.1)
-    thetad[2] ~ dunif(0.0,.1)
-    thetad[3] ~ dunif(0.0,.1)
-    thetad[4] ~ dunif(0.0,.1)
-    thetad[5] ~ dunif(0.0,.1)
-    thetad[6] ~ dunif(0.0,.1)
-    thetad[7] ~ dunif(0.0,.1)
+    delta[1] ~ dunif(0.0,.1)
+    delta[2] ~ dunif(0.0,.1)
+    delta[3] ~ dunif(0.0,.1)
+    delta[4] ~ dunif(0.0,.1)
+    delta[5] ~ dunif(0.0,.1)
+    delta[6] ~ dunif(0.0,.1)
+    delta[7] ~ dunif(0.0,.1)
     
     #likelihood over the 7 age groups (j) and 7 towns (i)
     for (i in 1:7){
       for (j in 1:7){
-        totDeathsTown15[(i-1)*7 + j] ~ dbin(thetad[j], tot2015[(i-1)*7 + j])
-        totDeathsTown16[(i-1)*7 + j] ~ dbin(thetad[j], tot2016[(i-1)*7 + j])
-        totDeathsTown17[(i-1)*7 + j] ~ dbin(thetad[j], tot2017[(i-1)*7 + j])
-        totDeathsTown18[(i-1)*7 + j] ~ dbin(thetad[j], tot2018[(i-1)*7 + j])
-        totDeathsTown19[(i-1)*7 + j] ~ dbin(thetad[j], tot2019[(i-1)*7 + j])
-        totDeathsTown20[(i-1)*7 + j] ~ dbin(thetad[j] + (thetadCovid[j]*prop[j]), tot2019[(i-1)*7 + j])
+        totDeathsTown15[(i-1)*7 + j] ~ dbin(delta[j], tot2015[(i-1)*7 + j])
+        totDeathsTown16[(i-1)*7 + j] ~ dbin(delta[j], tot2016[(i-1)*7 + j])
+        totDeathsTown17[(i-1)*7 + j] ~ dbin(delta[j], tot2017[(i-1)*7 + j])
+        totDeathsTown18[(i-1)*7 + j] ~ dbin(delta[j], tot2018[(i-1)*7 + j])
+        totDeathsTown19[(i-1)*7 + j] ~ dbin(delta[j], tot2019[(i-1)*7 + j])
+        totDeathsTown20[(i-1)*7 + j] ~ dbin(delta[j] + (deltaCovid[j]*prop[j]), tot2019[(i-1)*7 + j])
       }
     }
   }
