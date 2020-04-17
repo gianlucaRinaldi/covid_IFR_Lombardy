@@ -4,7 +4,8 @@
 
 # Parameters:
 
-# theta_d: IFR
+# thetad: 7x1 vector of baseline fatality rate by age range
+# thetadCovid: 7x1 vector of IFR by age range
 # theta_i: proportion infected
 
 # mu: mean of dead per year in a normal year
@@ -44,14 +45,13 @@ model = function(){
   thetad[6] ~ dunif(0.0,.1)
   thetad[7] ~ dunif(0.0,.1)
   
-  theta_i[1] ~ dunif(0,1)
-  theta_i[2] ~ dunif(0,1)
-  theta_i[3] ~ dunif(0,1)
-  theta_i[4] ~ dunif(0,1)
-  theta_i[5] ~ dunif(0,1)
-  theta_i[6] ~ dunif(0,1)
-  theta_i[7] ~ dunif(0,1)
-  #theta_i ~ dbeta(10,5)
+  theta_i[1] ~ dbeta(3,2)
+  theta_i[2] ~ dbeta(3,2)
+  theta_i[3] ~ dbeta(3,2)
+  theta_i[4] ~ dbeta(3,2)
+  theta_i[5] ~ dbeta(3,2)
+  theta_i[6] ~ dbeta(3,2)
+  theta_i[7] ~ dbeta(3,2)
   
   #likelihood over the 7 age groups (j) and 7 towns (i)
   for (i in 1:7){
@@ -108,7 +108,7 @@ MCMCtrace(postTown,
 gelman.diag(postTown)
 
 # get summary of posterior samples for two parameters
-MCMCsummary(postTown, params = c('thetad','theta_i', "thetadCovid"), digits=2)
+MCMCsummary(postTown, params = c('thetad','theta_i', "thetadCovid"), digits=4)
 
 IFRbyAge <- MCMCsummary(postTown, params = c("thetadCovid"), digits=2, probs = c(0.025, 0.25,.5,.75,.975))
 ageRanges <- unique(dataLikelihoodTown$ageRange)
@@ -132,7 +132,7 @@ nc = 3
 
 params <- c("thetadCovid", "thetad")
 
-infectedProportions <- seq(0.01, .8, 0.01)
+infectedProportions <- seq(0.01, 1, 0.01)
 
 graphDataAll <- data.table()
 
@@ -189,7 +189,6 @@ for(propInfected in infectedProportions){
   graphData <- as.data.table(MCMCsummary(post)[8:14, 3:5])
   graphData[, ageRange := ageRanges]
   graphData[, prop := propInfected]
-  
   graphDataAll <- rbind(graphDataAll, graphData)
   }
 
