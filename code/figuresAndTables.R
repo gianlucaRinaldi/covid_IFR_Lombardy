@@ -191,11 +191,6 @@ over80IFR <- over80IFR[ageRange %in% c("81+"), c(sum(ageRangeShare*`2.5%`), sum(
 # Overall IFR assuming everyone got it
 sprintf("%.2f", graphDataAll[ageRange == "Overall" & prop == 100, ])
 
-# Overall infection rate of the area
-infectionByTown <- cbind(demsData[, sum(tot2019), by = Denominazione], MCMCsum[8:14,])
-names(infectionByTown)[2] <- c("population")
-overallInfection <- infectionByTown[, list(sum(population*`50%`)/sum(population), sum(population*`2.5%`)/sum(population), sum(population*`97.5%`)/sum(population))]
-
 #########################
 ## Make Tables
 #########################
