@@ -5,24 +5,17 @@
 # Parameters:
 
 # delta: 7x1 vector of baseline fatality rate by age range
-# deltaCovid: 7x1 vector of IFR by age range
-# theta_i: proportion infected
-
-# mu: mean of dead per year in a normal year
-# sigma: standard deviation of dead per year in a normal year
+# deltaCovid: 7x1 vector of COVID-19 IFR by age range
+# theta_i: 7x1 proportion infected by COVID-19 in each municipality 
 
 ###########################################
 
 # Begin by loading and cleaning deaths data
 source(file = "code/lowerBoundCFRLodi.R")
 
-
 ####################################
 # Model by town
 ####################################
-# Demographic Data
-demsData <- fread(input = "data/Lodi_2015_2019.csv")
-demsData <- demsData[Denominazione %in% unique(relevantTownsDeathsData$NOME_COMUNE), ]
 
 dataLikelihoodTown <- merge(demsData, allDeathsByYearTown, by.x = c("Denominazione", "ageRange"), by.y = c("NOME_COMUNE", "ageRange"), all.x = T)
 dataLikelihoodTown[is.na(dataLikelihoodTown),] <- 0

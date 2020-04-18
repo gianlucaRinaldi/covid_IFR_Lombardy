@@ -18,8 +18,8 @@ ggplot() +
   xlab("") + 
   ylab("") + 
   geom_hline(yintercept = 0) +  
-  theme(legend.position = c(0.2, 0.8)) +
-  theme(legend.margin = 0) +
+  theme(legend.position = c(0.25, 0.8)) +
+  theme(legend.margin = margin(t = 0, unit='cm')) +
   theme(legend.title = element_blank()) +
   geom_vline(xintercept = as.Date("2020-02-20"), color = "red") +
   theme(panel.grid.minor = element_blank())
