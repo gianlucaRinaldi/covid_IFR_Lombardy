@@ -1,16 +1,15 @@
 #################################################################
 # Load and clean data
 #################################################################
+# Load necessary packages and set wd to the github folder
+source(file = "code/setWdLoadPackages.R")
 
 relevantTowns <- c("Codogno", "Castiglione d'Adda", "Casalpusterlengo", "Fombio", "Maleo", "Somaglia", "Bertonico", "Terranova dei Passerini", "Castelgerundo", "San Fiorano")
+excludedTowns <- c("Bertonico", "Terranova dei Passerini", "Castelgerundo") # Towns without deaths data for 2020 as of April 17 2020
 
 # Load demographic data
 lodiDem <- fread("data/Lodi.csv")
 relevantTownsDemData <- lodiDem[Denominazione %in% relevantTowns, ]
-
-# Demographic Data
-demsData <- fread(input = "data/Lodi_2015_2019.csv")
-demsData <- demsData[Denominazione %in% unique(relevantTownsDeathsData$NOME_COMUNE), ]
 
 # Display total population in the area and total population in towns with available deaths data
 relevantTownsDemData[`Età` == "Totale", sum(`Totale Femmine`) + sum(`Totale Maschi`)]
@@ -24,6 +23,10 @@ relevantTownsDemData[`Età` == "Totale" & Denominazione %in% excludedTowns, sum(
 # Load deaths data
 relevantTownsDeathsData <- fread("data/comune_giorno_relevant.csv") 
 
+# Demographic Data for previous years
+demsData <- fread(input = "data/Lodi_2015_2019.csv")
+demsData <- demsData[Denominazione %in% unique(relevantTownsDeathsData$NOME_COMUNE), ]
+
 # Define broader age categories
 relevantTownsDeathsData[, ageRange := cut(CL_ETA, c(0, 4, 8, 10, 12, 14, 16, 22), labels = c("0-20", "21-40", "41-50", "51-60", "61-70","71-80", "81+"), include.lowest = T)]
 
@@ -32,7 +35,6 @@ relevantTownsDeathsData <- relevantTownsDeathsData[! (TOTALE_20 == 9999), ]
 
 # We have deaths data for 7 towns
 relevantTownsDemData <- relevantTownsDemData[Denominazione %in% relevantTownsDeathsData[, unique(NOME_COMUNE)], ] 
-excludedTowns <- c("Bertonico", "Terranova dei Passerini", "Castelgerundo") # Towns without deaths data for 2020 as of April 17 2020
 
 # Compute excess deaths by age and by sex
 relevantTownsDeathsData[, dailyDeaths2020Male := sum(MASCHI_20), by = c("NOME_COMUNE", "ageRange", "GE")]
@@ -69,7 +71,7 @@ allDeathsByYear <- unique(relevantTownsDeathsData[(! is.na(totDeaths15)) & (! is
 
 # standard deviation total deaths in years before 2020
 relevantTownsDeathsData[covidAffectedPeriod == T,  sd(c(sum(MASCHI_15 + FEMMINE_15),sum(MASCHI_16 + FEMMINE_16), sum(MASCHI_17 + FEMMINE_17), sum(MASCHI_18 + FEMMINE_18), sum(MASCHI_19 + FEMMINE_19))),]
-allDeathsByYear <- melt(allDeathsByYear)
+allDeathsByYear <- melt(allDeathsByYear, id.vars = "ageRange")
 deathsByYearOverall <- allDeathsByYear[, sum(value), by = variable]
 deathsByYearOverall[, variable := substr(variable, 10,11)]
 ggplot(deathsByYearOverall, aes(variable, V1)) + geom_bar(stat = "identity") + xlab("") + ylab("Total deaths between Feb 21 and March 28") + theme_bw(base_size = 12)
@@ -90,8 +92,9 @@ relevantTownsDemData[, ageRange := cut(age2020, c(0, 20, 40, 50, 60, 70, 80,  20
 relevantTownsDemData[, populationMale := sum(`Totale Maschi`), by = c("Denominazione", "ageRange")]
 relevantTownsDemData[, populationFemale := sum(`Totale Femmine`), by = c("Denominazione", "ageRange")]
 
-# Average age
-relevantTownsDemData[! is.na(age2020), sum(age2020*(`Totale Femmine` + `Totale Maschi`))/sum((`Totale Femmine` + `Totale Maschi`))]
-relevantTownsDemData[! is.na(age2020), sum(`Totale Femmine`)]
-relevantTownsDemData[! is.na(age2020), sum(`Totale Femmine`)]
-relevantTownsDemData[! is.na(age2020), sum(`Totale Maschi`)]
+# Construct age range shares
+demographics <- unique(relevantTownsDemData[, c("Denominazione", "ageRange", "populationMale", "populationFemale")])	
+demographics <- demographics[!is.na(ageRange), ]	
+
+demographics[, totalPopulation := (sum(populationMale) + sum(populationFemale))]	
+demographics[, ageRangeShare := (sum(populationMale) + sum(populationFemale))/totalPopulation , by = ageRange]

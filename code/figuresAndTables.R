@@ -1,6 +1,11 @@
 #########################
 ## Make figures 
 #########################
+# Load necessary packages and set wd to the github folder
+# Please make sure all packages are loaded
+source(file = "code/setWdLoadPackages.R")
+# Run Bayesian estimations
+source("code/bayesianIFRestimate.R")
 
 baseSize <- 20
 
@@ -32,7 +37,7 @@ ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figure
 # Bayesian estimates of infection fatality rates
 ###############################################################
 
-IFRPlot <- rbindlist(lapply(postTown, function(x) as.data.table(x[,15:21])))
+IFRPlot <- rbindlist(lapply(postTown, function(x) as.data.table(x[,8:14])))
 ageRanges <- unique(dataLikelihoodTown$ageRange)
 names(IFRPlot) <- ageRanges
 IFRPlot <- melt(IFRPlot)
@@ -201,14 +206,6 @@ overallInfection <- infectionByTown[, list(sum(population*`50%`)/sum(population)
 #########################
 
 ##################################
-# Table of model estimates
-##################################
-sprintf("%.4f", overallIFR)
-sprintf("%.4f", under60IFR)
-sprintf("%.4f", over60IFR)
-MCMCsummary(postTown, params = c('delta','theta_i', "deltaCovid"), digits=4)
-
-##################################
 # Table of demographics and deaths
 ##################################
 tableDemsDeaths <- dataLikelihoodTown[, c(-1)] # Remove town name
@@ -219,5 +216,13 @@ overallDemsDeaths[, ageRange := "Overall"]
 tableDemsDeaths <- rbind(tableDemsDeaths, overallDemsDeaths)
 
 stargazer(tableDemsDeaths, summary = FALSE, rownames = FALSE)
+
+##################################
+# Table of model estimates
+##################################
+sprintf("%.4f", overallIFR)
+sprintf("%.4f", under60IFR)
+sprintf("%.4f", over60IFR)
+table2Data <- MCMCsummary(postTown, params = c('delta','theta_i', "deltaCovid"), digits=4)
 
 
