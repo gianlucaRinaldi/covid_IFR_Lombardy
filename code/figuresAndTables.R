@@ -14,7 +14,7 @@ baseSize <- 20
 ###############################################################
 
 ggplot() + 
-  geom_line(data = plotDeaths, aes(x = date, y = meanDailyDeahtsBeforeAll, colour = "2015-19 average deaths") , linetype = "dashed") + 
+  geom_line(data = plotDeaths, aes(x = date, y = meanDailyDeathsBeforeAll, colour = "2015-19 average deaths") , linetype = "dashed") + 
   geom_line(data = plotDeaths, aes(x = date, y = deaths2020All, colour = "2020 deaths")) + 
   scale_color_manual(values = c(
     '2015-19 average deaths' = 'blue',
@@ -60,7 +60,7 @@ ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figure
 ###############################################################
 
 # Construct overall ifr 
-ageRangeShare <- unique(demographics[, c("ageRange", "ageRangeShare")]) 
+ageRangeShare <- unique(demographicData[, c("ageRange", "ageRangeShare")]) 
 overallIFR <- merge(graphDataAll, ageRangeShare, by = "ageRange")
 overallIFR <- overallIFR[, list(sum(`2.5%` * ageRangeShare), sum(`50%` * ageRangeShare), sum(`97.5%` * ageRangeShare)), by = prop]
 overallIFR[, ageRange := "Overall", ]
@@ -151,14 +151,16 @@ MCMCtrace(postTown,
                        TeX("Density $\\delta_{Fombio}$"),
                        TeX("Density $\\delta_{Maleo}$"),
                        TeX("Density $\\delta_{San Fiorano}$"),
-                       TeX("Density $\\delta_{Somaglia}$")),
+                       TeX("Density $\\delta_{Somaglia}$"),
+                       TeX("Density $\\delta_{Terranova dei Passerini}$")),
           main_tr =  c(TeX("Trace $\\theta_{Casalpusterlengo}$"),
                        TeX("Trace $\\delta_{Castiglione d'Adda}$"),
                        TeX("Trace $\\delta_{Codogno}$"),
                        TeX("Trace $\\delta_{Fombio}$"),
                        TeX("Trace $\\delta_{Maleo}$"),
                        TeX("Trace $\\delta_{San Fiorano}$"),
-                       TeX("Trace $\\delta_{Somaglia}$")),
+                       TeX("Trace $\\delta_{Somaglia}$"),
+                       TeX("Trace $\\delta_{Terranova dei Passerini}$")),
           filename = "output/MCMCtheta.pdf")
 
 system2(command = "pdfcrop", 

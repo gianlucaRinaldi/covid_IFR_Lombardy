@@ -14,7 +14,7 @@ model
     delta[5] ~ dunif(0.00000E+00, 0.1)
     delta[6] ~ dunif(0.00000E+00, 0.1)
     delta[7] ~ dunif(0.00000E+00, 0.1)
-    for (i in 1:7) {
+    for (i in 1:8) {
         for (j in 1:7) {
             totDeathsTown15[(i - 1) * 7 + j] ~ dbin(delta[j], 
                 tot2015[(i - 1) * 7 + j])

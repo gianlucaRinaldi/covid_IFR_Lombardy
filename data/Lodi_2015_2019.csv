@@ -41,13 +41,6 @@ Brembio,51-60,382,373,388,409,411
 Brembio,61-70,335,334,318,304,320
 Brembio,71-80,287,298,311,315,307
 Brembio,81+,169,165,173,185,199
-Camairago,0-20,116,114,115,115,
-Camairago,21-40,173,163,139,122,
-Camairago,41-50,117,118,122,123,
-Camairago,51-60,111,109,108,112,
-Camairago,61-70,79,86,82,76,
-Camairago,71-80,47,48,50,58,
-Camairago,81+,36,38,38,37,
 Casaletto Lodigiano,0-20,626,608,588,580,583
 Casaletto Lodigiano,21-40,773,756,679,675,637
 Casaletto Lodigiano,41-50,564,574,574,561,580
@@ -83,6 +76,13 @@ Caselle Lurani,51-60,397,432,463,475,516
 Caselle Lurani,61-70,340,347,343,327,322
 Caselle Lurani,71-80,208,221,236,246,266
 Caselle Lurani,81+,118,116,120,122,131
+Castelgerundo,0-20,255,250,250,243,250
+Castelgerundo,21-40,351,343,318,298,309
+Castelgerundo,41-50,264,252,254,251,238
+Castelgerundo,51-60,212,220,228,248,247
+Castelgerundo,61-70,201,207,200,198,198
+Castelgerundo,71-80,132,133,135,153,154
+Castelgerundo,81+,95,100,103,99,101
 Castelnuovo Bocca d'Adda,0-20,248,229,237,233,223
 Castelnuovo Bocca d'Adda,21-40,349,346,336,345,346
 Castelnuovo Bocca d'Adda,41-50,232,228,218,217,209
@@ -104,13 +104,6 @@ Castiraga Vidardo,51-60,406,422,436,441,452
 Castiraga Vidardo,61-70,267,269,281,293,315
 Castiraga Vidardo,71-80,179,191,203,216,218
 Castiraga Vidardo,81+,94,96,100,105,105
-Cavacurta,0-20,139,136,135,128,
-Cavacurta,21-40,178,180,179,176,
-Cavacurta,41-50,147,134,132,128,
-Cavacurta,51-60,101,111,120,136,
-Cavacurta,61-70,122,121,118,122,
-Cavacurta,71-80,85,85,85,95,
-Cavacurta,81+,59,62,65,62,
 Cavenago d'Adda,0-20,382,386,372,370,343
 Cavenago d'Adda,21-40,537,517,498,491,449
 Cavenago d'Adda,41-50,351,355,350,343,344
@@ -426,10 +419,3 @@ Zelo Buon Persico,51-60,1042,1070,1080,1100,1120
 Zelo Buon Persico,61-70,783,793,805,816,834
 Zelo Buon Persico,71-80,517,536,577,587,591
 Zelo Buon Persico,81+,309,321,339,357,366
-Castelgerundo,0-20,,,,,250
-Castelgerundo,21-40,,,,,309
-Castelgerundo,41-50,,,,,238
-Castelgerundo,51-60,,,,,247
-Castelgerundo,61-70,,,,,198
-Castelgerundo,71-80,,,,,154
-Castelgerundo,81+,,,,,101
