@@ -1,3 +1,17 @@
+##################################################
+## Set workind directory and load packages
+##################################################
+
+# Set the working directory to the local folder to which the git was downloaded
+setwd("/Github/covid_IFR_Lombardy/")
+
+required_packages <- c("OECD", "rjags", "R2OpenBUGS", "coda", "data.table", "MCMCvis", "viridis", "ggsci", "RColorBrewer", "stargazer", "animation", "latex2exp")
+not_installed <- required_packages[!(required_packages %in% installed.packages()[ , "Package"])]    # Determine missing packages
+if(length(not_installed)) install.packages(not_installed)                                           # Install missing packages
+
+suppressWarnings(lapply(required_packages, require, character.only = TRUE))
+
+
 #########################
 ## Make figures 
 #########################
