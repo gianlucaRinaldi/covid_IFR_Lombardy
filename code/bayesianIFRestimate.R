@@ -9,8 +9,6 @@
 # theta_i: 8x1 proportion infected by COVID-19 in each municipality 
 
 ###########################################
-# Load necessary packages and set wd to the github folder
-source(file = "code/setWdLoadPackages.R")
 # Begin by loading and cleaning deaths data
 source(file = "code/loadCleanData.R")
 

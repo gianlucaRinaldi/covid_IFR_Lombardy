@@ -1,9 +1,6 @@
 #################################################################
 # Load and clean data
 #################################################################
-# Load necessary packages and set wd to the github folder
-source(file = "code/setWdLoadPackages.R")
-
 relevantTowns <- c("Bertonico", "Codogno", "Castiglione d'Adda", "Casalpusterlengo", "Fombio", "Maleo", "Somaglia", "Terranova dei Passerini", "Castelgerundo", "San Fiorano")
 excludedTowns <- c("Bertonico", "Casalpusterlengo") # Only Bertonico doesn't have death data for 2020 as of May 6 2020, but Casalpusterlengo also only gets to March 31
 
@@ -13,7 +10,7 @@ excludedTowns <- c("Bertonico", "Casalpusterlengo") # Only Bertonico doesn't hav
 #write.csv(relevantTownsDeathsData, file = "data/comune_giorno_relevant_update.csv")
 
 # Load deaths data
-deathsData <- fread("data/comune_giorno_relevant_update.csv") 
+deathsData <- fread("data/comune_giorno_relevant.csv") 
 # Construct total deaths by age group, year, and town for the covid affected period
 deathsData[, ageRange := cut(CL_ETA, c(0, 4, 8, 10, 12, 14, 16, 22), labels = c("0-20", "21-40", "41-50", "51-60", "61-70","71-80", "81+"), include.lowest = T)]
 

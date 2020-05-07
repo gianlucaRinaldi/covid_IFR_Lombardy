@@ -5,7 +5,7 @@
 # Set the working directory to the local folder to which the git was downloaded
 setwd("/Github/covid_IFR_Lombardy/")
 
-required_packages <- c("OECD", "rjags", "R2OpenBUGS", "coda", "data.table", "MCMCvis", "viridis", "ggsci", "RColorBrewer", "stargazer", "animation", "latex2exp")
+required_packages <- c("OECD", "rjags", "ggplot2", "R2OpenBUGS", "coda", "data.table", "MCMCvis", "viridis", "ggsci", "RColorBrewer", "stargazer", "animation", "latex2exp")
 not_installed <- required_packages[!(required_packages %in% installed.packages()[ , "Package"])]    # Determine missing packages
 if(length(not_installed)) install.packages(not_installed)                                           # Install missing packages
 
@@ -221,12 +221,12 @@ overallInfection <- infectionByTown[, list(sum(population*`50%`)/sum(population)
 ##################################
 # Table of demographics and deaths
 ##################################
-tableDemsDeaths <- dataLikelihoodTown[, c(-1)] # Remove town name
-tableDemsDeaths <-  tableDemsDeaths[,lapply(.SD, sum, na.rm=TRUE), by= ageRange]
-overallDemsDeaths <- tableDemsDeaths[, c(-1)]
+table1Data <- dataLikelihoodTown[, c(-1)] # Remove town name
+table1Data <-  table1Data[,lapply(.SD, sum, na.rm=TRUE), by= ageRange]
+overallDemsDeaths <- table1Data[, c(-1)]
 overallDemsDeaths <- overallDemsDeaths[,lapply(.SD, sum, na.rm=TRUE), ]
 overallDemsDeaths[, ageRange := "Overall"]
-tableDemsDeaths <- rbind(tableDemsDeaths, overallDemsDeaths)
+table1Data <- rbind(table1Data, overallDemsDeaths)
 
 stargazer(tableDemsDeaths, summary = FALSE, rownames = FALSE)
 
