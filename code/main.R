@@ -15,9 +15,6 @@ suppressWarnings(lapply(required_packages, require, character.only = TRUE))
 #########################
 ## Make figures 
 #########################
-# Load necessary packages and set wd to the github folder
-# Please make sure all packages are loaded
-source(file = "code/setWdLoadPackages.R")
 # Run Bayesian estimations
 source("code/bayesianIFRestimate.R")
 
