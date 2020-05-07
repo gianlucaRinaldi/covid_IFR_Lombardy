@@ -3,4 +3,5 @@ Estimating the infection fatality rate of Covid-19 using demographics data and d
 
 All code within this repository is published under the MIT license (see LICENSE file).
 
-To replicate the exhibits in the paper, just need to run figuresAndTables.R
+To replicate the exhibits in the paper, please set the workind directory in 
+"setWdLoadPackages.R" to the directory of the local git, and then run figuresAndTables.R

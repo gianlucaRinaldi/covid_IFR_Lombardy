@@ -1,3 +1,4 @@
+# Set the working directory to the local folder to which the git was downloaded
 setwd("/Github/covid_IFR_Lombardy/")
 
 require(data.table)

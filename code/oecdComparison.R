@@ -19,7 +19,7 @@ popByAgeRange <- merge(popByAgeRange, oecdDemCln[AGE %in% c("TOTAL"), c("LOCATIO
 popByAgeRange[, share := V1/obsValue]
 
 # Add IFR estimates
-ifrEstimates <- table2Data[15:21, 3:5]
+ifrEstimates <- table2Data[16:22, 3:5]
 ifrEstimates <- cbind(ifrEstimates, c("0-20", "21-40", "41-50", "51-60", "61-70", "71-80", "81+"))
 names(ifrEstimates) <- c("lower","median","upper","ageRange")
 
@@ -38,6 +38,10 @@ ggplot(data=popByAgeRange, aes(x= reorder(LOCATION, - overallIFRest), y = overal
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   xlab("") +
   ylab("Estimated overall IFR")
+popByAgeRange[LOCATION == "USA", ]
+popByAgeRange[LOCATION == "ITA", ]
+popByAgeRange[LOCATION == "ITA", ]
+unique(demographicData[, c("ageRange", "ageRangeShare")])
 
 # Check baseline mortality in this region against rest of italy
 italyMortality <- fread(file = "data/baselineMortalityItaly.csv")
