@@ -2,21 +2,28 @@
 # Load and clean data
 #################################################################
 relevantTowns <- c("Bertonico", "Codogno", "Castiglione d'Adda", "Casalpusterlengo", "Fombio", "Maleo", "Somaglia", "Terranova dei Passerini", "Castelgerundo", "San Fiorano")
-excludedTowns <- c("Bertonico", "Casalpusterlengo") # Only Bertonico doesn't have death data for 2020 as of May 6 2020, but Casalpusterlengo also only gets to March 31
+excludedTowns <- c("Bertonico") # Only Bertonico doesn't have death data for 2020 as of May 6 2020
 
 # This is only to reconstruct comune_giorno_relevant.csv from the original data (not uploaded to github for size limitations)
 #deathsData <- fread("data/comuni_giornalieroUpTo15April.csv") 
 #relevantTownsDeathsData <- deathsData[NOME_COMUNE %in% relevantTowns, ]
-#write.csv(relevantTownsDeathsData, file = "data/comune_giorno_relevant_update.csv")
+#write.csv(relevantTownsDeathsData, file = "data/comune_giorno_relevant.csv")
 
 # Load deaths data
-deathsData <- fread("data/comune_giorno_relevant.csv") 
+deathsDataOld <- fread("data/comune_giorno_relevant_old.csv") 
+deathsDataNew <- fread("data/comune_giorno_relevant.csv")
+
+names(deathsDataOld) <- names(deathsDataNew)
+# Replace data for first 4 days of april for Casalpusterlengo from previous release with data up to April 4th
+deathsDataNew <- deathsDataNew[! (NOME_COMUNE == "Casalpusterlengo" & GE %in% 401:404), ]
+deathsData <- rbind(deathsDataNew, deathsDataOld[NOME_COMUNE == "Casalpusterlengo" & GE %in% 401:404, ])
+
 # Construct total deaths by age group, year, and town for the covid affected period
 deathsData[, ageRange := cut(CL_ETA, c(0, 4, 8, 10, 12, 14, 16, 22), labels = c("0-20", "21-40", "41-50", "51-60", "61-70","71-80", "81+"), include.lowest = T)]
 
-# Remove dates after april 15 because no 2020 data
-deathsData <- deathsData[GE <= 415,]
-deathsData[, covidAffectedPeriod := (GE %in% 221:415)]
+# Remove dates after april 4 because no 2020 data
+deathsData <- deathsData[GE <= 404,]
+deathsData[, covidAffectedPeriod := (GE %in% 221:404)]
 
 # Demographics data
 demographicData <- fread(input = "data/Lodi_2015_2019.csv")

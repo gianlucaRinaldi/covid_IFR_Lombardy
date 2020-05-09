@@ -46,6 +46,7 @@ over80IFR <- over80IFR[ageRange %in% c("81+"), c(sum(ageRangeShare*`2.5%`), sum(
 ##################################
 # Table of demographics and deaths
 ##################################
+
 table1Data <- dataLikelihoodTown[, c(-1)] # Remove town name
 table1Data <-  table1Data[,lapply(.SD, sum, na.rm=TRUE), by= ageRange]
 overallDemsDeaths <- table1Data[, c(-1)]
@@ -62,6 +63,9 @@ sprintf("%.4f", overallIFR)
 sprintf("%.4f", under60IFR)
 sprintf("%.4f", over60IFR)
 table2Data <- MCMCsummary(postTown, params = c('delta','theta_i', "deltaCovid"), digits=4)
+table2Data <- table2Data[, c(4,3,5)]
+table2Data <- table2Data*100
+stargazer(table2Data, summary = FALSE, digits = 4)
 
 #########################
 ## Make figures 
@@ -224,6 +228,7 @@ MCMCtrace(postTown,
           priors = priorTheta,
           params = c("theta_i"),
           main_den = c(TeX("Density $\\theta_{Casalpusterlengo}$"),
+                       TeX("Density $\\theta_{Castelgerundo}$"),
                        TeX("Density $\\delta_{Castiglione d'Adda}$"),
                        TeX("Density $\\delta_{Codogno}$"),
                        TeX("Density $\\delta_{Fombio}$"),
@@ -232,6 +237,7 @@ MCMCtrace(postTown,
                        TeX("Density $\\delta_{Somaglia}$"),
                        TeX("Density $\\delta_{Terranova dei Passerini}$")),
           main_tr =  c(TeX("Trace $\\theta_{Casalpusterlengo}$"),
+                       TeX("Density $\\theta_{Castelgerundo}$"),
                        TeX("Trace $\\delta_{Castiglione d'Adda}$"),
                        TeX("Trace $\\delta_{Codogno}$"),
                        TeX("Trace $\\delta_{Fombio}$"),

@@ -6,7 +6,7 @@
 
 # delta: 7x1 vector of baseline fatality rate by age range
 # deltaCovid: 7x1 vector of COVID-19 IFR by age range
-# theta_i: 8x1 proportion infected by COVID-19 in each municipality 
+# theta_i: 9x1 proportion infected by COVID-19 in each municipality 
 
 ###########################################
 # Begin by loading and cleaning deaths data
@@ -49,9 +49,10 @@ model = function(){
   theta_i[6] ~ dbeta(3,2)
   theta_i[7] ~ dbeta(3,2)
   theta_i[8] ~ dbeta(3,2)
+  theta_i[9] ~ dbeta(3,2)
   
   # likelihood over the 7 age groups (j) and 8 towns (i)
-  for (i in 1:8){
+  for (i in 1:9){
     for (j in 1:7){
       totDeathsTown15[(i-1)*7 + j] ~ dbin(delta[j], tot2015[(i-1)*7 + j])
       totDeathsTown16[(i-1)*7 + j] ~ dbin(delta[j], tot2016[(i-1)*7 + j])
@@ -152,7 +153,7 @@ for(propInfected in infectedProportions){
     delta[7] ~ dunif(0.0,.1)
     
     #likelihood over the 7 age groups (j) and 8 towns (i)
-    for (i in 1:8){
+    for (i in 1:9){
       for (j in 1:7){
         totDeathsTown15[(i-1)*7 + j] ~ dbin(delta[j], tot2015[(i-1)*7 + j])
         totDeathsTown16[(i-1)*7 + j] ~ dbin(delta[j], tot2016[(i-1)*7 + j])
