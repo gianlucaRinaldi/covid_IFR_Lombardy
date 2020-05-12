@@ -15,6 +15,7 @@ source(file = "code/loadCleanData.R")
 ####################################
 # Model by town
 ####################################
+set.seed(0) # Set seed to assure replicability
 
 dataLikelihoodTown <- merge(demographicData, 
                             allDeathsByYearTown, 
@@ -67,8 +68,8 @@ model = function(){
 model.file="model.txt"
 write.model(model, model.file)
 
-# no initial values
-inits<-NULL
+# Initial seed to insure reproducibility
+inits<-list(.RNG.name="base::Super-Duper", .RNG.seed=1)
 
 # what parameters we want to track
 params = c("deltaCovid",
@@ -92,7 +93,7 @@ jmod = jags.model(file = model.file, data = dataLikelihoodTown, n.chains = nc, i
 update(jmod, n.iter=nb, by=1)
 
 # draw samples from the posterior for params, given MCMC hyperparameters
-postTown = coda.samples(jmod, params, n.iter = ni, thin = nt)
+postTown = coda.samples(jmod, params, n.iter = ni, thin = nt, seed = 0)
 
 MCMCtrace(postTown,
           type = 'density',
@@ -168,9 +169,6 @@ for(propInfected in infectedProportions){
   model.file="model.txt"
   write.model(model, model.file)
   
-  # no initial values
-  inits<-NULL
-
   # compile model
   jmod = jags.model(file = model.file, data = dataLikelihoodTown, n.chains = nc, inits = inits, n.adapt = 1000)
   
@@ -178,7 +176,7 @@ for(propInfected in infectedProportions){
   update(jmod, n.iter=nb, by=1)
   
   # draw samples from the posterior for params, given MCMC hyperparameters
-  post = coda.samples(jmod, params, n.iter = ni, thin = nt)
+  post = coda.samples(jmod, params, n.iter = ni, thin = nt, seed = 0)
   
   graphData <- as.data.table(MCMCsummary(post)[8:14, 3:5])
   graphData[, ageRange := ageRanges]

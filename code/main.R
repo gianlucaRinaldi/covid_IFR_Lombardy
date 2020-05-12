@@ -1,7 +1,6 @@
 ##################################################
 ## Set workind directory and load packages
 ##################################################
-
 # Set the working directory to the local folder to which the git was downloaded
 setwd("/Github/covid_IFR_Lombardy/")
 
@@ -53,8 +52,8 @@ overallDemsDeaths <- table1Data[, c(-1)]
 overallDemsDeaths <- overallDemsDeaths[,lapply(.SD, sum, na.rm=TRUE), ]
 overallDemsDeaths[, ageRange := "Overall"]
 table1Data <- rbind(table1Data, overallDemsDeaths)
-
 stargazer(table1Data, summary = FALSE, rownames = FALSE)
+write.csv(table1Data, "output/table1Data.csv")
 
 ##################################
 # Table of model estimates
@@ -63,9 +62,13 @@ sprintf("%.4f", overallIFR)
 sprintf("%.4f", under60IFR)
 sprintf("%.4f", over60IFR)
 table2Data <- MCMCsummary(postTown, params = c('delta','theta_i', "deltaCovid"), digits=4)
-table2Data <- table2Data[, c(4,3,5)]
 table2Data <- table2Data*100
+table2Data <- table2Data[, c(3,4,5)]
+table2Data <- rbind(overallIFR, under60IFR, over60IFR, table2Data)
+table2Data <- table2Data[, c(2,1,3)]
+table2Data <- round(table2Data,4)
 stargazer(table2Data, summary = FALSE, digits = 4)
+write.csv(table2Data, "output/table2Data.csv")
 
 #########################
 ## Make figures 
