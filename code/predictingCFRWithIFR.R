@@ -1,7 +1,6 @@
 library(readstata13)
 dataWorld <- as.data.table(read.dta13("/Github/covid_IFR_Lombardy/data/worldometer.dta"))
 dataIfr <- fread("/Github/covid_IFR_Lombardy/data/correlation_ifr_cfr.csv")
-dataWorldometer <- fread("/Github/covid_IFR_Lombardy/data/")
 dataIfr <- dataIfr[country != "China", ]
 dataIfr[, overallifrest := overallifrest/100]
 dataIfr[, positiveRate := cases/tests]
@@ -16,6 +15,7 @@ ggplot(dataWorld[tests_mln > 20000,], aes(overallifrest,cfr, label = location)) 
   theme_bw(base_size = baseSize) +
   xlab("Estimated IFR") + 
   ylab("Reported CFR")
+summary(lm(cfr~ overallifrest, dataWorld[tests_mln > 20000,]))
 
 ggplot(dataWorld[tests_mln > 20000,], aes(log(overallifrest), log(cfr), label = location)) + geom_point() + 
   geom_smooth(method =  "lm",data =  dataWorld[tests_mln > 20000,], color = "gray", formula = 'y ~ x') + 
@@ -32,6 +32,14 @@ ggplot(dataWorld, aes(log(overallifrest), log(cfr), label = location)) + geom_po
   ylab("Reported CFR")
 
 summary(lm(cfr~ overallifrest, dataWorld[tests_mln > 20000,]))
+summary(lm(cfr~ overallifrest + positiveRate, dataWorld[tests_mln > 20000,]))
+summary(lm(log(cfr) ~ log(overallifrest), dataWorld[tests_mln > 20000,], weights = deaths.x))
+
+summary(lm(cfr~ overallifrest + positiveRate, dataWorld))
+summary(lm(log(cfr) ~ log(overallifrest) + positiveRate, dataWorld))
+summary(lm(log(cfr) ~ log(overallifrest) + positiveRate, dataWorld, weights = deaths.x))
+summary(lm(log(cfr) ~ log(overallifrest), dataWorld))
+
 summary(lm(cfr ~ overallifrest, dataWorld, weights = deaths.x))
 
 summary(lm(cfr ~ overallifrest + positiveRate, dataWorld, weights = deaths.x))

@@ -160,15 +160,16 @@ ggplot(data=popByAgeRange, aes(x= reorder(LOCATION, - overallIFRest), y = overal
   theme_bw(base_size = baseSize) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   xlab("") +
-  ylab("Estimated overall IFR")
+  ylab("Estimated overall IFR") 
 
 ggsave(filename = "output/IFRbyCountry.pdf", width = 15, height = 7)
 ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figures/IFRbyCountry.pdf", width = 15, height = 7)
+write.csv(popByAgeRange, "output/crossCountryIFREstimates.csv")
 
-popByAgeRange[LOCATION == "USA", ]
-popByAgeRange[LOCATION == "ITA", ]
 
-# Overall IFR assuming everyone got it
+##############################################################
+# Overall IFR assuming everyone got it and infection rate
+##############################################################
 sprintf("%.2f", graphDataAll[ageRange == "Overall" & prop == 100, ])
 
 # Overall infection rate of the area
