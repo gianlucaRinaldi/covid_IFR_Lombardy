@@ -17,12 +17,12 @@ ggplot(dataWorld[tests_mln > 20000,], aes(overallifrest,cfr, label = location)) 
   ylab("Reported CFR")
 summary(lm(cfr~ overallifrest, dataWorld[tests_mln > 20000,]))
 
-ggplot(dataWorld[tests_mln > 20000,], aes(log(overallifrest), log(cfr), label = location)) + geom_point() + 
+ggplot(dataWorld[tests_mln > 20000,], aes(overallifrest*100, cfr*100, label = location)) + geom_point() + 
   geom_smooth(method =  "lm",data =  dataWorld[tests_mln > 20000,], color = "gray", formula = 'y ~ x') + 
-  geom_text(color= "Black", nudge_y = .005) + 
+  geom_text(color= "Black", nudge_y = .5) + 
   theme_bw(base_size = baseSize) +
-  xlab("Estimated IFR") + 
-  ylab("Reported CFR")
+  xlab("Estimated IFR (%)") + 
+  ylab("Reported CFR (%)")
 
 ggplot(dataWorld, aes(log(overallifrest), log(cfr), label = location)) + geom_point() + 
   geom_smooth(method =  "lm",data =  dataWorld, color = "gray", formula = 'y ~ x') + 
@@ -31,7 +31,9 @@ ggplot(dataWorld, aes(log(overallifrest), log(cfr), label = location)) + geom_po
   xlab("Estimated IFR") + 
   ylab("Reported CFR")
 
-summary(lm(cfr~ overallifrest, dataWorld[tests_mln > 20000,]))
+summ(lm(cfr~ overallifrest, dataWorld[tests_mln > 20000,]))
+summ(lm(cfr~ overallifrest, dataWorld))
+  
 summary(lm(cfr~ overallifrest + positiveRate, dataWorld[tests_mln > 20000,]))
 summary(lm(log(cfr) ~ log(overallifrest), dataWorld[tests_mln > 20000,], weights = deaths.x))
 
