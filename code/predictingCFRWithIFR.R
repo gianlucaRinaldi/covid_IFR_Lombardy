@@ -9,12 +9,28 @@ ggplot(dataIfr[ ], aes(overallifrest,cfr)) + geom_point()
 
 dataWorld <- merge(dataWorld, dataIfr, by = "country")
 baseSize <- 20
+ggplot(dataWorld, aes(overallifrest,cfr, label = location)) + geom_point() + 
+  geom_smooth(method =  "lm",data =  dataWorld, color = "gray", formula = 'y ~ x') + 
+  geom_text(color= "Black", nudge_y = .005) + 
+  theme_bw(base_size = baseSize) +
+  xlab("Estimated IFR") + 
+  ylab("Reported CFR")
+
 ggplot(dataWorld[tests_mln > 20000,], aes(overallifrest,cfr, label = location)) + geom_point() + 
   geom_smooth(method =  "lm",data =  dataWorld[tests_mln > 20000,], color = "gray", formula = 'y ~ x') + 
   geom_text(color= "Black", nudge_y = .005) + 
   theme_bw(base_size = baseSize) +
   xlab("Estimated IFR") + 
   ylab("Reported CFR")
+
+ggplot(dataWorld[cases_mln > 200,], aes(overallifrest,cfr, label = location)) + geom_point() + 
+  geom_smooth(method =  "lm",data =  dataWorld[cases_mln > 200,], color = "gray", formula = 'y ~ x') + 
+  geom_text(color= "Black", nudge_y = .005) + 
+  theme_bw(base_size = baseSize) +
+  xlab("Estimated IFR") + 
+  ylab("Reported CFR")
+
+summary(lm(cfr~ overallifrest, dataWorld[tests_mln > 20000,]))
 summary(lm(cfr~ overallifrest, dataWorld[tests_mln > 20000,]))
 
 ggplot(dataWorld[tests_mln > 20000,], aes(overallifrest*100, cfr*100, label = location)) + geom_point() + 
@@ -23,6 +39,13 @@ ggplot(dataWorld[tests_mln > 20000,], aes(overallifrest*100, cfr*100, label = lo
   theme_bw(base_size = baseSize) +
   xlab("Estimated IFR (%)") + 
   ylab("Reported CFR (%)")
+
+ggplot(dataWorld[tests_mln > 20000,], aes(positiveRate, cfr*100, label = location)) + geom_point() + 
+  geom_smooth(method =  "lm",data =  dataWorld[tests_mln > 20000,], color = "gray", formula = 'y ~ x') + 
+  geom_text(color= "Black", nudge_y = .001) + 
+  theme_bw(base_size = baseSize) +
+  ylab("Estimated IFR (%)") + 
+  xlab("Positive Rate")
 
 ggplot(dataWorld, aes(log(overallifrest), log(cfr), label = location)) + geom_point() + 
   geom_smooth(method =  "lm",data =  dataWorld, color = "gray", formula = 'y ~ x') + 
@@ -33,13 +56,19 @@ ggplot(dataWorld, aes(log(overallifrest), log(cfr), label = location)) + geom_po
 
 summ(lm(cfr~ overallifrest, dataWorld[tests_mln > 20000,]))
 summ(lm(cfr~ overallifrest, dataWorld))
-  
-summary(lm(cfr~ overallifrest + positiveRate, dataWorld[tests_mln > 20000,]))
+
+summary(lm(cfr ~ positiveRate, dataWorld[tests_mln > 20000,]))
+summary(lm(cfr ~ overallifrest, dataWorld[tests_mln > 20000,]))
+summary(lm(cfr ~ overallifrest + positiveRate, dataWorld[tests_mln > 20000,]))
+
 summary(lm(log(cfr) ~ log(overallifrest), dataWorld[tests_mln > 20000,], weights = deaths.x))
 
 summary(lm(cfr~ overallifrest + positiveRate, dataWorld))
 summary(lm(log(cfr) ~ log(overallifrest) + positiveRate, dataWorld))
 summary(lm(log(cfr) ~ log(overallifrest) + positiveRate, dataWorld, weights = deaths.x))
+summary(lm(log(cfr) ~ log(overallifrest) + positiveRate, dataWorld[tests_mln > 20000,], weights = deaths.x))
+
+
 summary(lm(log(cfr) ~ log(overallifrest), dataWorld))
 
 summary(lm(cfr ~ overallifrest, dataWorld, weights = deaths.x))
@@ -51,10 +80,29 @@ summary(lm(log(cfr) ~ log(overallifrest) + log(positiveRate), dataWorld, weights
 
 
 
-summary(lm(cfr ~ overallifrest, dataWorld, weights = deaths.x))
+summary(lm(cfr ~ overallifrest, dataWorld))
+summary(lm(cfr ~ positiveRate, dataWorld))
+
+summ(lm(cfr ~ overallifrest, dataWorld[tests_mln > 20000,]))
+summ(lm(log(cfr) ~  log(overallifrest) + positiveRate, dataWorld[country != "Singapore" & tests_mln > 20000, ]))
+summ(lm(log(cfr) ~  log(overallifrest) + positiveRate, dataWorld[country != "Singapore" & tests_mln > 10000, ]))
+summ(lm(log(cfr) ~  log(overallifrest) + positiveRate, dataWorld[country != "Singapore" & tests_mln > 20000, ]))
+summ(lm(log(cfr) ~  log(overallifrest) + log(positiveRate), dataWorld[country != "Singapore" & tests_mln > 20000, ]))
+
+dataWorld[country != "Singapore" & tests_mln > 20000, cfrRes := lm(log(cfr) ~  log(overallifrest), dataWorld[country != "Singapore" & tests_mln > 20000, ])$residuals]
+dataWorld[country != "Singapore" & tests_mln > 20000, posRateRes:= lm(positiveRate ~  log(overallifrest), dataWorld[country != "Singapore" & tests_mln > 20000, ])$residuals]
+
+summary(lm(cfrRes ~ posRateRes, dataWorld[tests_mln > 20000,]))
+ggplot(dataWorld, aes(posRateRes, cfrRes, label = location)) + 
+  geom_point() + 
+  geom_smooth(method =  "lm",data =  dataWorld[tests_mln > 20000,], color = "gray", formula = 'y ~ x') + 
+  geom_text(color= "Black", nudge_y = .001) + 
+  theme_bw(base_size = baseSize) +
+  ylab("Residual CFR (%)") + 
+  xlab("Residual Positive Rate")
 
 summary(lm(log(cfr) ~ log(overallifrest), dataWorld[tests_mln > 20000,]))
-summary(lm(log(cfr) ~ log(overallifrest) + log(positiveRate), dataWorld[tests_mln > 20000,]))
+summary(lm(log(cfr) ~ log(overallifrest) + positiveRate, dataWorld[tests_mln > 20000,]))
 
 
 ggplot(dataIfr[cases > 1000, ], aes(overallifrest,cfr)) + geom_point()

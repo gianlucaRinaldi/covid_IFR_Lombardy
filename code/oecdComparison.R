@@ -34,3 +34,4 @@ popByAgeRange[, overallIFRUpper := sum(upper*share), by = LOCATION]
 
 popByAgeRange <- unique(popByAgeRange[, c("LOCATION", "overallIFRest", "overallIFRLower", "overallIFRUpper")])
 
+

@@ -3,8 +3,10 @@
 ##################################################
 # Set the working directory to the local folder to which the git was downloaded
 setwd("/Github/covid_IFR_Lombardy/")
-
-required_packages <- c("OECD", "rjags", "ggplot2", "R2OpenBUGS", "coda", "data.table", "MCMCvis", "viridis", "ggsci", "RColorBrewer", "stargazer", "animation", "latex2exp")
+rm(list = ls())
+required_packages <- c("OECD", "rjags", "ggplot2", "R2OpenBUGS", "coda", "data.table", 
+                       "MCMCvis", "viridis", "ggsci", "RColorBrewer", "stargazer", 
+                       "animation", "latex2exp", "readstata13", "jtools")
 not_installed <- required_packages[!(required_packages %in% installed.packages()[ , "Package"])]    # Determine missing packages
 if(length(not_installed)) install.packages(not_installed)                                           # Install missing packages
 
@@ -166,6 +168,26 @@ ggsave(filename = "output/IFRbyCountry.pdf", width = 15, height = 7)
 ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figures/IFRbyCountry.pdf", width = 15, height = 7)
 write.csv(popByAgeRange, "output/crossCountryIFREstimates.csv")
 
+##############################################################
+# IFR Across countries and Case fatality rates
+##############################################################
+dataWorld <- as.data.table(read.dta13("/Github/covid_IFR_Lombardy/data/worldometer.dta"))
+dataIfr <- fread("/Github/covid_IFR_Lombardy/data/correlation_ifr_cfr.csv")
+dataIfr <- dataIfr[country != "China", ]
+dataIfr[, overallifrest := overallifrest/100]
+dataIfr[, positiveRate := cases/tests]
+
+dataWorld <- merge(dataWorld, dataIfr, by = "country")
+baseSize <- 20
+ggplot(dataWorld[tests_mln > 20000,], aes(overallifrest,cfr, label = location)) + geom_point() + 
+  geom_smooth(method =  "lm",data =  dataWorld[tests_mln > 20000,], color = "gray", formula = 'y ~ x',se = FALSE) + 
+  geom_text(color= "Black", nudge_y = .005) + 
+  theme_bw(base_size = baseSize) +
+  xlab("Estimated IFR") + 
+  ylab("Reported CFR")
+summ(lm(cfr ~ overallifrest,dataWorld[tests_mln > 20000,]))
+ggsave(filename = "output/ifrCfr.pdf")
+ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figures/ifrCfr.pdf")
 
 ##############################################################
 # Overall IFR assuming everyone got it and infection rate
@@ -176,6 +198,7 @@ sprintf("%.2f", graphDataAll[ageRange == "Overall" & prop == 100, ])
 infectionByTown <- cbind(demographicData[, sum(tot2019), by = Denominazione], MCMCsum[8:14,])
 names(infectionByTown)[2] <- c("population")
 overallInfection <- infectionByTown[, list(sum(population*`50%`)/sum(population), sum(population*`2.5%`)/sum(population), sum(population*`97.5%`)/sum(population))]
+
 
 ###############################################################
 # Appendix plot of trace and posterior densities
@@ -264,5 +287,26 @@ system2(command = "pdfcrop",
                     "output/MCMCtheta.pdf")) 
 
 
+###############################################################
+# Deaths by day in 2015-2019 and 2020 using old data
+###############################################################
 
+ggplot() + 
+  geom_line(data = plotDeathsSubset, aes(x = date, y = meanDailyDeathsBeforeAll, colour = "2015-19 average deaths") , linetype = "dashed") + 
+  geom_line(data = plotDeathsSubset, aes(x = date, y = deaths2020All, colour = "2020 deaths")) + 
+  scale_color_manual(values = c(
+    '2015-19 average deaths' = 'blue',
+    '2020 deaths' = 'black')) +
+  theme_bw(base_size = baseSize) + 
+  xlab("") + 
+  ylab("") + 
+  geom_hline(yintercept = 0) +  
+  theme(legend.position = c(0.25, 0.8)) +
+  theme(legend.margin = margin(t = 0, unit='cm')) +
+  theme(legend.title = element_blank()) +
+  geom_vline(xintercept = as.Date("2020-02-20"), color = "red") +
+  theme(panel.grid.minor = element_blank())
+
+ggsave(filename = "output/deathsByDateSubset.pdf")
+ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figures/deathsByDateSubset.pdf")
 
