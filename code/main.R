@@ -18,36 +18,37 @@ source("code/bayesianIFRestimate.R")
 #########################
 ## Make Tables
 #########################
-
 IFRPlot <- rbindlist(lapply(postTown, function(x) as.data.table(x[,8:14])))
 ageRanges <- unique(dataLikelihoodTown$ageRange)
 names(IFRPlot) <- ageRanges
 IFRPlot <- melt(IFRPlot)
 IFRPlot[, value := value*100] # Change to percentage
 
+IFRTable <- as.data.table(MCMCsummary(postTown, params = c("deltaCovid"), digits=4, HPD = T,func = function(x) posterior.mode(x)))
+IFRTable[, mode := func] 
+IFRTable <- IFRTable*100 # Change to percentage
+IFRTable <- IFRTable[, c("mode", "mean", "95%_HPDL",  "95%_HPDU")]
+IFRTable$ageRange <- ageRanges
+
 #############################################################
 # Overall IFR from full model for various age groups
 #############################################################
 ageRangeShare <- unique(demographicData[, c("ageRange", "ageRangeShare")]) 
-overallIFR <- merge(ageRangeShare, IFRPlot[, as.list(quantile(value, c(.025,.5,.975))), by = variable], by.x = "ageRange", by.y = "variable")
-overallIFR <- overallIFR[, c(sum(ageRangeShare*`2.5%`), sum(ageRangeShare*`50%`) , sum(ageRangeShare*`97.5%`))]
+overallIFR <- merge(ageRangeShare, IFRTable, by ="ageRange")
+overallIFR <- overallIFR[, c(sum(ageRangeShare*`mode`), sum(ageRangeShare*`mean`), sum(ageRangeShare*`95%_HPDL`), sum(ageRangeShare*`95%_HPDU`))]
 sprintf("%.2f", overallIFR)
 
-under60IFR <- merge(ageRangeShare, IFRPlot[, as.list(quantile(value, c(.025,.5,.975))), by = variable], by.x = "ageRange", by.y = "variable")
-under60IFR <- under60IFR[ageRange %in% c("0-20", "21-40", "41-50", "51-60"), c(sum(ageRangeShare*`2.5%`), sum(ageRangeShare*`50%`) , sum(ageRangeShare*`97.5%`))/sum(ageRangeShare)]
+under60IFR <- merge(ageRangeShare, IFRTable, by ="ageRange")
+under60IFR <- under60IFR[ageRange %in% c("0-20", "21-40", "41-50", "51-60"), c(sum(ageRangeShare*`mode`), sum(ageRangeShare*`mean`), sum(ageRangeShare*`95%_HPDL`), sum(ageRangeShare*`95%_HPDU`))/sum(ageRangeShare)]
 sprintf("%.2f", under60IFR)
 
-over60IFR <- merge(ageRangeShare, IFRPlot[, as.list(quantile(value, c(.025,.5,.975))), by = variable], by.x = "ageRange", by.y = "variable")
-over60IFR <- over60IFR[! ageRange %in% c("0-20", "21-40", "41-50", "51-60"), c(sum(ageRangeShare*`2.5%`), sum(ageRangeShare*`50%`) , sum(ageRangeShare*`97.5%`))/sum(ageRangeShare)]
+over60IFR <- merge(ageRangeShare, IFRTable, by ="ageRange")
+over60IFR <- over60IFR[! ageRange %in% c("0-20", "21-40", "41-50", "51-60"), c(sum(ageRangeShare*`mode`), sum(ageRangeShare*`mean`), sum(ageRangeShare*`95%_HPDL`), sum(ageRangeShare*`95%_HPDU`))/sum(ageRangeShare)]
 sprintf("%.2f", over60IFR)
-
-over80IFR <- merge(ageRangeShare, IFRPlot[, as.list(quantile(value, c(.025,.5,.975))), by = variable], by.x = "ageRange", by.y = "variable")
-over80IFR <- over80IFR[ageRange %in% c("81+"), c(sum(ageRangeShare*`2.5%`), sum(ageRangeShare*`50%`) , sum(ageRangeShare*`97.5%`))/sum(ageRangeShare)]
 
 ##################################
 # Table of demographics and deaths
 ##################################
-
 table1Data <- dataLikelihoodTown[, c(-1)] # Remove town name
 table1Data <-  table1Data[,lapply(.SD, sum, na.rm=TRUE), by= ageRange]
 overallDemsDeaths <- table1Data[, c(-1)]
@@ -63,12 +64,12 @@ write.csv(table1Data, "output/table1Data.csv")
 sprintf("%.4f", overallIFR)
 sprintf("%.4f", under60IFR)
 sprintf("%.4f", over60IFR)
-table2Data <- MCMCsummary(postTown, params = c('delta','theta_i', "deltaCovid"), digits=4)
+table2Data <- MCMCsummary(postTown, params = c('delta','theta_i', "deltaCovid"), digits=4, HPD = T,func = function(x) posterior.mode(x))
 table2Data <- table2Data*100
-table2Data <- table2Data[, c(3,4,5)]
+table2Data <- table2Data[, c(7,1,3,4)]
 table2Data <- rbind(overallIFR, under60IFR, over60IFR, table2Data)
-table2Data <- table2Data[, c(2,1,3)]
 table2Data <- round(table2Data,4)
+names(table2Data)[1] <- "mode"
 stargazer(table2Data, summary = FALSE, digits = 4)
 write.csv(table2Data, "output/table2Data.csv")
 
@@ -80,7 +81,6 @@ baseSize <- 20
 ###############################################################
 # Deaths by day in 2015-2019 and 2020
 ###############################################################
-
 ggplot() + 
   geom_line(data = plotDeaths, aes(x = date, y = meanDailyDeathsBeforeAll, colour = "2015-19 average deaths") , linetype = "dashed") + 
   geom_line(data = plotDeaths, aes(x = date, y = deaths2020All, colour = "2020 deaths")) + 
@@ -103,7 +103,6 @@ ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figure
 ###############################################################
 # Bayesian estimates of infection fatality rates
 ###############################################################
-
 ggplot(IFRPlot, aes(variable, value)) +
   geom_boxplot(outlier.shape = NA) +
   scale_y_sqrt(breaks = c(0,.01, .1, .2, .5, 1, 2, 5, 10), limits = c(0, 15)) +
@@ -119,7 +118,6 @@ ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figure
 ###############################################################
 # Fatality rates for different assumptions on infection rates
 ###############################################################
-
 # Construct overall ifr 
 overallIFR <- merge(graphDataAll, ageRangeShare, by = "ageRange")
 overallIFR <- overallIFR[, list(sum(`2.5%` * ageRangeShare), sum(`50%` * ageRangeShare), sum(`97.5%` * ageRangeShare)), by = prop]
@@ -171,21 +169,20 @@ write.csv(popByAgeRange, "output/crossCountryIFREstimates.csv")
 ##############################################################
 # IFR Across countries and Case fatality rates
 ##############################################################
-dataWorld <- as.data.table(read.dta13("/Github/covid_IFR_Lombardy/data/worldometer.dta"))
-dataIfr <- fread("/Github/covid_IFR_Lombardy/data/correlation_ifr_cfr.csv")
-dataIfr <- dataIfr[country != "China", ]
-dataIfr[, overallifrest := overallifrest/100]
-dataIfr[, positiveRate := cases/tests]
-
-dataWorld <- merge(dataWorld, dataIfr, by = "country")
+dataWorld <- fread("/Github/covid_IFR_Lombardy/data/worldometerJune3.csv")
+dataWorld[, LOCATION := countrycode(Country, origin = 'country.name', destination = 'iso3c')]
+dataWorld <- merge(dataWorld, popByAgeRange, by = "LOCATION")
+dataWorld[, cfr := Deaths/Cases]
+dataWorld[, overallIFRest := overallIFRest/100]
 baseSize <- 20
-ggplot(dataWorld[tests_mln > 20000,], aes(overallifrest,cfr, label = location)) + geom_point() + 
-  geom_smooth(method =  "lm",data =  dataWorld[tests_mln > 20000,], color = "gray", formula = 'y ~ x',se = FALSE) + 
+
+ggplot(dataWorld[Tests_mln > 20000,], aes(overallIFRest, cfr, label = LOCATION)) + geom_point() + 
+  geom_smooth(method =  "lm",data =  dataWorld[Tests_mln > 20000,], color = "gray", formula = 'y ~ x',se = FALSE) + 
   geom_text(color= "Black", nudge_y = .005) + 
   theme_bw(base_size = baseSize) +
   xlab("Estimated IFR") + 
   ylab("Reported CFR")
-summ(lm(cfr ~ overallifrest,dataWorld[tests_mln > 20000,]))
+summ(lm(cfr ~ overallIFRest, dataWorld[Tests_mln > 20000,]),robust =  T)
 ggsave(filename = "output/ifrCfr.pdf")
 ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figures/ifrCfr.pdf")
 
@@ -198,7 +195,6 @@ sprintf("%.2f", graphDataAll[ageRange == "Overall" & prop == 100, ])
 infectionByTown <- cbind(demographicData[, sum(tot2019), by = Denominazione], MCMCsum[8:14,])
 names(infectionByTown)[2] <- c("population")
 overallInfection <- infectionByTown[, list(sum(population*`50%`)/sum(population), sum(population*`2.5%`)/sum(population), sum(population*`97.5%`)/sum(population))]
-
 
 ###############################################################
 # Appendix plot of trace and posterior densities
