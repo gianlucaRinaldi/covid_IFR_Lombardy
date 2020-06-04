@@ -91,7 +91,7 @@ ggplot() +
   xlab("") + 
   ylab("") + 
   geom_hline(yintercept = 0) +  
-  theme(legend.position = c(0.25, 0.8)) +
+  theme(legend.position = c(0.2, 0.8)) +
   theme(legend.margin = margin(t = 0, unit='cm')) +
   theme(legend.title = element_blank()) +
   geom_vline(xintercept = as.Date("2020-02-20"), color = "red") +
@@ -287,26 +287,4 @@ system2(command = "pdfcrop",
                     "output/MCMCtheta.pdf")) 
 
 
-###############################################################
-# Deaths by day in 2015-2019 and 2020 using old data
-###############################################################
-
-ggplot() + 
-  geom_line(data = plotDeathsSubset, aes(x = date, y = meanDailyDeathsBeforeAll, colour = "2015-19 average deaths") , linetype = "dashed") + 
-  geom_line(data = plotDeathsSubset, aes(x = date, y = deaths2020All, colour = "2020 deaths")) + 
-  scale_color_manual(values = c(
-    '2015-19 average deaths' = 'blue',
-    '2020 deaths' = 'black')) +
-  theme_bw(base_size = baseSize) + 
-  xlab("") + 
-  ylab("") + 
-  geom_hline(yintercept = 0) +  
-  theme(legend.position = c(0.25, 0.8)) +
-  theme(legend.margin = margin(t = 0, unit='cm')) +
-  theme(legend.title = element_blank()) +
-  geom_vline(xintercept = as.Date("2020-02-20"), color = "red") +
-  theme(panel.grid.minor = element_blank())
-
-ggsave(filename = "output/deathsByDateSubset.pdf")
-ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figures/deathsByDateSubset.pdf")
 

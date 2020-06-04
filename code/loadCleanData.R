@@ -5,25 +5,19 @@ relevantTowns <- c("Bertonico", "Codogno", "Castiglione d'Adda", "Casalpusterlen
 excludedTowns <- c("Bertonico") # Only Bertonico doesn't have death data for 2020 as of May 6 2020
 
 # This is only to reconstruct comune_giorno_relevant.csv from the original data (not uploaded to github for size limitations)
-#deathsData <- fread("data/comuni_giornalieroUpTo15April.csv") 
-#relevantTownsDeathsData <- deathsData[NOME_COMUNE %in% relevantTowns, ]
+deathsData <- fread("data/comuni_giornaliero-decessiUpTo30April.csv") 
+relevantTownsDeathsData <- deathsData[NOME_COMUNE %in% relevantTowns, ]
 #write.csv(relevantTownsDeathsData, file = "data/comune_giorno_relevant.csv")
 
 # Load deaths data
-deathsDataOld <- fread("data/comune_giorno_relevant_old.csv") 
-deathsDataNew <- fread("data/comune_giorno_relevant.csv")
-
-names(deathsDataOld) <- names(deathsDataNew)
-# Replace data for first 4 days of april for Casalpusterlengo from previous release with data up to April 4th
-deathsDataNew <- deathsDataNew[! (NOME_COMUNE == "Casalpusterlengo" & GE %in% 401:404), ]
-deathsData <- rbind(deathsDataNew, deathsDataOld[NOME_COMUNE == "Casalpusterlengo" & GE %in% 401:404, ])
+deathsData <- fread("data/comune_giorno_relevant.csv")
 
 # Construct total deaths by age group, year, and town for the covid affected period
 deathsData[, ageRange := cut(CL_ETA, c(0, 4, 8, 10, 12, 14, 16, 22), labels = c("0-20", "21-40", "41-50", "51-60", "61-70","71-80", "81+"), include.lowest = T)]
 
-# Remove dates after april 4 because no 2020 data
-deathsData <- deathsData[GE <= 404,]
-deathsData[, covidAffectedPeriod := (GE %in% 221:404)]
+# Remove dates after april 30 because no 2020 data
+deathsData <- deathsData[GE <= 430,]
+deathsData[, covidAffectedPeriod := (GE %in% 221:430)]
 
 # Demographics data
 demographicData <- fread(input = "data/Lodi_2015_2019.csv")
@@ -66,22 +60,3 @@ plotDeaths[, date := as.Date(paste0(month, "/", day, "/2020"), format = "%m/%d/%
 demographicData[, totalPopulationAgeRange := sum(tot2019), by = ageRange]	
 demographicData[, totalPopulation := sum(tot2019)]	
 demographicData[, ageRangeShare := totalPopulationAgeRange/totalPopulation, ]
-
-# Construct total deaths by date for subset of towns having data which goes further (all but Casalpusterlengo)
-relevantTownsLonger <- c("Bertonico", "Codogno", "Castiglione d'Adda", "Fombio", "Maleo", "Somaglia", "Terranova dei Passerini", "Castelgerundo", "San Fiorano")
-deathsDataSubset <- deathsDataNew[NOME_COMUNE %in% relevantTownsLonger,]
-deathsDataSubset <- deathsDataSubset[T_20 != "n.d.",]
-deathsDataSubset[, totDeathsDay15 := sum(as.numeric(T_15)), by = c("GE")]
-deathsDataSubset[, totDeathsDay16 := sum(as.numeric(T_16)), by = c("GE")]
-deathsDataSubset[, totDeathsDay17 := sum(as.numeric(T_17)), by = c("GE")]
-deathsDataSubset[, totDeathsDay18 := sum(as.numeric(T_18)), by = c("GE")]
-deathsDataSubset[, totDeathsDay19 := sum(as.numeric(T_19)), by = c("GE")]
-deathsDataSubset[, totDeathsDay20 := sum(as.numeric(T_20)), by = c("GE")]
-deathsDataSubset[, meanDailyDeathsBeforeAll := (totDeathsDay15 + totDeathsDay16 + totDeathsDay17 + totDeathsDay18 + totDeathsDay19)/5, by = GE]
-deathsDataSubset[, deaths2020All := totDeathsDay20]
-
-plotDeathsSubset <- unique(deathsDataSubset[, c("GE", "meanDailyDeathsBeforeAll", "deaths2020All")])
-plotDeathsSubset[, month := substr(as.character(GE), 1,1)]
-plotDeathsSubset[, day := substr(as.character(GE), 2,3)]
-plotDeathsSubset[, date := as.Date(paste0(month, "/", day, "/2020"), format = "%m/%d/%Y")]
-
