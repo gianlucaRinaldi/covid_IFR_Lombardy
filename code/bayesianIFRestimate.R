@@ -103,7 +103,7 @@ MCMCtrace(postTown,
 gelman.diag(postTown)
 
 # get summary of posterior samples
-MCMCsum <- MCMCsummary(postTown, params = c('delta','theta_i', "deltaCovid"), digits=4)
+MCMCsum <- MCMCsummary(postTown, params = c('delta','theta_i', "deltaCovid"), digits=4, HPD = T,func = function(x) posterior.mode(x))
 
 IFRbyAge <- MCMCsummary(postTown, params = c("deltaCovid"), digits=2, probs = c(0.025, 0.25,.5,.75,.975))
 ageRanges <- unique(dataLikelihoodTown$ageRange)

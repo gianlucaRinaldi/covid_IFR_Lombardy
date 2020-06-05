@@ -5,8 +5,8 @@
 setwd("/Github/covid_IFR_Lombardy/")
 rm(list = ls())
 required_packages <- c("OECD", "rjags", "ggplot2", "R2OpenBUGS", "coda", "data.table", 
-                       "MCMCvis", "viridis", "ggsci", "RColorBrewer", "stargazer", 
-                       "animation", "latex2exp", "readstata13", "jtools")
+                       "MCMCvis", "viridis", "ggsci", "RColorBrewer", "stargazer", "countrycode", 
+                       "animation", "latex2exp", "readstata13", "jtools", "MCMCglmm", "Smisc")
 not_installed <- required_packages[!(required_packages %in% installed.packages()[ , "Package"])]    # Determine missing packages
 if(length(not_installed)) install.packages(not_installed)                                           # Install missing packages
 
@@ -191,15 +191,17 @@ ggsave(filename = "../../Users/grinaldi/Dropbox/Apps/Overleaf/covid19 IFR/figure
 ##############################################################
 sprintf("%.2f", graphDataAll[ageRange == "Overall" & prop == 100, ])
 
+graphDataAllUnder60 <- merge(ageRangeShare, graphDataAll[ageRange %in% c("0-20", "21-40", "41-50", "51-60"),])
+graphDataAllUnder60[prop == 10, c(sum(ageRangeShare*`50%`), sum(ageRangeShare*`2.5%`), sum(ageRangeShare*`97.5%`))/sum(ageRangeShare)]
+
 # Overall infection rate of the area
-infectionByTown <- cbind(demographicData[, sum(tot2019), by = Denominazione], MCMCsum[8:14,])
+infectionByTown <- cbind(demographicData[, sum(tot2019), by = Denominazione], MCMCsum[8:16,])
 names(infectionByTown)[2] <- c("population")
-overallInfection <- infectionByTown[, list(sum(population*`50%`)/sum(population), sum(population*`2.5%`)/sum(population), sum(population*`97.5%`)/sum(population))]
+overallInfection <- infectionByTown[, list(sum(population*func)/sum(population), sum(population*mean)/sum(population),  sum(population*`95%_HPDL`)/sum(population), sum(population*`95%_HPDU`)/sum(population))]
 
 ###############################################################
 # Appendix plot of trace and posterior densities
 ###############################################################
-
 # diagnostic evaluation of posterior samples
 priorDelta <- seq(0,0.1, length.out = 5000)
 MCMCtrace(postTown,
